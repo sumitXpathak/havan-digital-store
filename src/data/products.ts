@@ -1,75 +1,77 @@
 export const categories = [
   {
+    id: "havan-yagna",
+    name: "Havan & Yagna",
+    nameHindi: "हवन एवं यज्ञ",
+    description: "Samidha, samagri, vedi & fire ritual essentials",
+    icon: "🔥",
+    items: ["Havan Samidha", "Havan Samagri", "Camphors", "Ghee & Oils", "Havan Kunda/Vedi", "Arni Manthas", "Colored Rice"],
+    image: "/placeholder.svg"
+  },
+  {
+    id: "deities-worship",
+    name: "Deities & Worship",
+    nameHindi: "देवी-देवता एवं पूजन",
+    description: "Vigrahas, shivlings, saligram & asanas",
+    icon: "🙏",
+    items: ["God Pratimas", "Shivlings", "Saligram", "Sankhas", "Kushasana", "Wool Asana", "Plastic Asana"],
+    image: "/placeholder.svg"
+  },
+  {
     id: "puja-essentials",
     name: "Puja Essentials",
     nameHindi: "पूजा सामग्री",
-    description: "Utensils, cleaners & havan samidha",
+    description: "Utensils, vessels, lamps & daily needs",
     icon: "🪔",
-    items: ["Brass Utensils", "Copper Items", "Puja Thalis", "Havan Samidha", "Cleaners"],
+    items: ["Incense Sticks", "Cotton Wicks", "Kumkum/Roli", "Puja Utensils", "Kalash", "Handmade Lamps", "Puja Kits"],
     image: "/placeholder.svg"
   },
   {
-    id: "fragrances",
-    name: "Fragrances & Dhoop",
-    nameHindi: "सुगंध और धूप",
-    description: "Itra, agarbatti, sambrani & camphors",
-    icon: "🌸",
-    items: ["Rajasthani Itra", "Premium Agarbatti", "Sambrani Cups", "Camphor", "Havan Samagri"],
-    image: "/placeholder.svg"
-  },
-  {
-    id: "puja-kits",
-    name: "Complete Puja Kits",
-    nameHindi: "पूजा किट",
-    description: "Ready-to-use small & big puja sets",
-    icon: "🎁",
-    items: ["Small Puja Kit", "Big Puja Kit", "Festival Special", "Daily Puja Set"],
-    image: "/placeholder.svg"
-  },
-  {
-    id: "sacred-books",
-    name: "Sacred Literature",
-    nameHindi: "धार्मिक ग्रंथ",
-    description: "Puranas, mantras & puja vidhi books",
-    icon: "📖",
-    items: ["Puranas", "Puja Books", "Mantra Collections", "Aarti Sangrah"],
-    image: "/placeholder.svg"
-  },
-  {
-    id: "textiles",
-    name: "Puja Textiles",
-    nameHindi: "पूजा वस्त्र",
-    description: "Dhotis, shawls, chunari & sacred fabrics",
+    id: "vastras",
+    name: "Vastras (Textiles)",
+    nameHindi: "वस्त्र",
+    description: "Dhotis, sarees, chunari & ritual clothes",
     icon: "🧵",
-    items: ["Dhotis", "Shawls", "Chunari/Dupattas", "Gathbandhan Cloth", "Deity Vastra"],
+    items: ["Dhotis", "Dhoti Belts", "Shawls", "Sarees", "Chunari/Dupatta", "Gathbandhan Clothes", "Jhola Bags"],
     image: "/placeholder.svg"
   },
   {
-    id: "deities",
-    name: "Deities & Sacred Items",
-    nameHindi: "मूर्तियां",
-    description: "Pratimas, shankha, saligram & shivlings",
-    icon: "🙏",
-    items: ["God Pratimas", "Shankha", "Saligram", "Narmadeshwar Shivling", "Rudraksha"],
+    id: "fragrance-purity",
+    name: "Fragrance & Purity",
+    nameHindi: "सुगंध एवं शुद्धि",
+    description: "Itra, sprays, sambrani & cleaners",
+    icon: "🌸",
+    items: ["Rajasthani Itra", "Fragrance Spray", "Alcohol-Free Spray", "Sambrani", "Idol Cleaners", "Scrubbers"],
+    image: "/placeholder.svg",
+    badge: "100% Ritual Pure"
+  },
+  {
+    id: "books-knowledge",
+    name: "Books & Knowledge",
+    nameHindi: "ग्रंथ एवं ज्ञान",
+    description: "Puranas, mantras & puja guides",
+    icon: "📖",
+    items: ["Puranas", "Mantra Books", "Puja Vidhi Guides", "Aarti Sangrah"],
     image: "/placeholder.svg"
   },
   {
-    id: "vedi-items",
-    name: "Vedi & Ritual Items",
-    nameHindi: "वेदी सामग्री",
-    description: "Vedi, aasana, lamps, oils & ghee",
-    icon: "⚱️",
-    items: ["Havan Vedi", "Aasana", "Oil Lamps", "Ghee & Oils", "Coloured Rice"],
+    id: "occasion-specific",
+    name: "Occasion Specific",
+    nameHindi: "अवसर विशेष",
+    description: "Wedding, festivals & ceremony collections",
+    icon: "🎊",
+    items: ["Wedding Items", "Brahmin Varana", "Festival Collections", "Satyanarayan Puja", "Navratri Special"],
     image: "/placeholder.svg"
   },
   {
-    id: "lamps-diyas",
-    name: "Lamps & Diyas",
-    nameHindi: "दीपक",
-    description: "Handmade & artificial decorative lamps",
-    icon: "✨",
-    items: ["Brass Diyas", "Clay Diyas", "Electric Lamps", "Decorative Lamps", "Akhand Jyoti"],
-    image: "/placeholder.svg"
+    id: "sampoorna-kits",
+    name: "Sampoorna Kits",
+    nameHindi: "संपूर्ण किट",
+    description: "Complete ready-to-use puja bundles",
+    icon: "🎁",
+    items: ["Daily Puja Kit", "Festival Kit", "Havan Kit", "Wedding Kit", "Temple Kit"],
+    image: "/placeholder.svg",
+    badge: "One-Click Bundle"
   }
 ];
 
@@ -83,7 +85,7 @@ export const featuredProducts = [
     rating: 4.8,
     reviews: 156,
     image: "/placeholder.svg",
-    category: "puja-essentials",
+    category: "havan-yagna",
     badge: "Bestseller"
   },
   {
@@ -107,8 +109,8 @@ export const featuredProducts = [
     rating: 4.7,
     reviews: 234,
     image: "/placeholder.svg",
-    category: "fragrances",
-    badge: "Popular"
+    category: "fragrance-purity",
+    badge: "100% Ritual Pure"
   },
   {
     id: "4",
@@ -119,20 +121,20 @@ export const featuredProducts = [
     rating: 5.0,
     reviews: 67,
     image: "/placeholder.svg",
-    category: "deities",
+    category: "deities-worship",
     badge: "Sacred"
   },
   {
     id: "5",
-    name: "Complete Puja Kit - Large",
-    nameHindi: "संपूर्ण पूजा किट",
+    name: "Sampoorna Daily Puja Kit",
+    nameHindi: "संपूर्ण दैनिक पूजा किट",
     price: 2499,
     originalPrice: 2999,
     rating: 4.9,
     reviews: 312,
     image: "/placeholder.svg",
-    category: "puja-kits",
-    badge: "Value Pack"
+    category: "sampoorna-kits",
+    badge: "One-Click Bundle"
   },
   {
     id: "6",
@@ -143,7 +145,7 @@ export const featuredProducts = [
     rating: 4.8,
     reviews: 178,
     image: "/placeholder.svg",
-    category: "lamps-diyas",
+    category: "puja-essentials",
     badge: "Handcrafted"
   }
 ];
