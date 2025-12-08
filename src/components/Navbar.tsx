@@ -1,15 +1,20 @@
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark');
     }
     return false;
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isDark) {
@@ -19,7 +24,24 @@ const Navbar = () => {
     }
   }, [isDark]);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const toggleDarkMode = () => setIsDark(!isDark);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -34,7 +56,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <span className="text-2xl">🙏</span>
             <div className="flex flex-col">
               <span className="font-heading text-xl md:text-2xl font-bold text-primary">
@@ -44,7 +66,7 @@ const Navbar = () => {
                 हवन समिधा & पूजा सामग्री
               </span>
             </div>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-8">
@@ -81,10 +103,27 @@ const Navbar = () => {
                 0
               </span>
             </Button>
-            <Button variant="saffron" size="sm" className="hidden md:flex">
-              <User className="h-4 w-4" />
-              Login
-            </Button>
+            
+            {user ? (
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-sm text-muted-foreground truncate max-w-[120px]">
+                  {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                </span>
+                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                variant="saffron" 
+                size="sm" 
+                className="hidden md:flex"
+                onClick={() => navigate('/auth')}
+              >
+                <User className="h-4 w-4" />
+                Login
+              </Button>
+            )}
 
             {/* Mobile Menu Button */}
             <Button
@@ -116,10 +155,24 @@ const Navbar = () => {
                 <Button variant="ghost" size="icon">
                   <Search className="h-5 w-5" />
                 </Button>
-                <Button variant="saffron" className="flex-1">
-                  <User className="h-4 w-4" />
-                  Login / Register
-                </Button>
+                {user ? (
+                  <Button variant="ghost" className="flex-1" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="saffron" 
+                    className="flex-1"
+                    onClick={() => {
+                      navigate('/auth');
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <User className="h-4 w-4" />
+                    Login / Register
+                  </Button>
+                )}
               </div>
             </div>
           </div>
