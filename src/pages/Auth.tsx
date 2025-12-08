@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
 const emailSchema = z.string().email("Please enter a valid email address");
@@ -143,6 +143,17 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-saffron-50 via-background to-gold-50 dark:from-saffron-950/20 dark:via-background dark:to-gold-950/20 flex items-center justify-center p-4">
+      {/* Back Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-4 left-4 gap-2"
+        onClick={() => navigate("/")}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Home
+      </Button>
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
