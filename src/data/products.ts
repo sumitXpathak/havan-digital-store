@@ -80,73 +80,139 @@ export const featuredProducts = [
     id: "1",
     name: "Premium Havan Samidha Set",
     nameHindi: "प्रीमियम हवन समिधा",
+    description: "Experience the divine essence of traditional Vedic rituals with our Premium Havan Samidha Set. Carefully curated with sacred woods including Mango, Peepal, and Palash, each piece is sun-dried to perfection for optimal burning. The aromatic blend creates a purifying atmosphere during your havan ceremonies.",
+    features: [
+      "100% natural and chemical-free woods",
+      "Includes Mango, Peepal, Palash, and Bargad samidha",
+      "Sun-dried for 30+ days for perfect burning",
+      "Suitable for daily havan and special occasions",
+      "Eco-friendly packaging"
+    ],
     price: 299,
     originalPrice: 399,
     rating: 4.8,
     reviews: 156,
-    image: "/placeholder.svg",
+    images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
     category: "havan-yagna",
-    badge: "Bestseller"
+    badge: "Bestseller",
+    material: "Natural Wood",
+    weight: "500g",
+    inStock: true
   },
   {
     id: "2",
     name: "Brass Puja Thali Complete Set",
     nameHindi: "पीतल पूजा थाली सेट",
+    description: "Elevate your daily puja with this exquisite handcrafted Brass Puja Thali Set. Each piece is meticulously crafted by skilled artisans, featuring traditional embossed designs that reflect our rich cultural heritage. The set includes everything you need for a complete puja ritual.",
+    features: [
+      "Handcrafted by skilled artisans",
+      "Pure brass with traditional designs",
+      "Includes thali, diya, bell, and accessories",
+      "Tarnish-resistant coating",
+      "Gift-ready packaging"
+    ],
     price: 1299,
     originalPrice: 1599,
     rating: 4.9,
     reviews: 89,
-    image: "/placeholder.svg",
+    images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
     category: "puja-essentials",
-    badge: "Premium"
+    badge: "Premium",
+    material: "Pure Brass",
+    weight: "1.2kg",
+    inStock: true
   },
   {
     id: "3",
     name: "Rajasthani Itra Collection",
     nameHindi: "राजस्थानी इत्र",
+    description: "Immerse yourself in the royal fragrances of Rajasthan with our authentic Itra Collection. These traditional attars are crafted using age-old distillation methods, capturing the essence of natural flowers and herbs. Perfect for personal use and creating a sacred atmosphere during prayers.",
+    features: [
+      "100% alcohol-free natural fragrances",
+      "Traditional distillation process",
+      "Long-lasting aroma (8+ hours)",
+      "Includes Rose, Sandalwood, and Jasmine variants",
+      "Crystal glass bottles"
+    ],
     price: 449,
     originalPrice: 549,
     rating: 4.7,
     reviews: 234,
-    image: "/placeholder.svg",
+    images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
     category: "fragrance-purity",
-    badge: "100% Ritual Pure"
+    badge: "100% Ritual Pure",
+    material: "Natural Essential Oils",
+    weight: "30ml (3x10ml)",
+    inStock: true
   },
   {
     id: "4",
     name: "Narmadeshwar Shivling",
     nameHindi: "नर्मदेश्वर शिवलिंग",
+    description: "Bring divine blessings into your home with this authentic Narmadeshwar Shivling, naturally formed in the sacred waters of the Narmada River. Each Shivling is unique, bearing the sacred marks that make it exceptionally auspicious for worship. Ideal for daily abhishek and meditation.",
+    features: [
+      "Naturally formed in Narmada River",
+      "Authentic certification included",
+      "Unique sacred markings",
+      "Comes with brass base stand",
+      "Ritual purification done before shipping"
+    ],
     price: 899,
     originalPrice: 1099,
     rating: 5.0,
     reviews: 67,
-    image: "/placeholder.svg",
+    images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
     category: "deities-worship",
-    badge: "Sacred"
+    badge: "Sacred",
+    material: "Natural Stone",
+    weight: "350g",
+    inStock: true
   },
   {
     id: "5",
     name: "Sampoorna Daily Puja Kit",
     nameHindi: "संपूर्ण दैनिक पूजा किट",
+    description: "Everything you need for your daily spiritual practice in one comprehensive kit. The Sampoorna Daily Puja Kit is thoughtfully assembled with premium quality items to ensure your daily worship is complete and fulfilling. Perfect for homes, offices, or as a thoughtful gift.",
+    features: [
+      "Complete set with 25+ items",
+      "Includes incense, diya, camphor, and more",
+      "Premium quality brass accessories",
+      "Monthly supply of consumables",
+      "Detailed puja vidhi guide included"
+    ],
     price: 2499,
     originalPrice: 2999,
     rating: 4.9,
     reviews: 312,
-    image: "/placeholder.svg",
+    images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
     category: "sampoorna-kits",
-    badge: "One-Click Bundle"
+    badge: "One-Click Bundle",
+    material: "Mixed",
+    weight: "2.5kg",
+    inStock: true
   },
   {
     id: "6",
     name: "Pure Ghee Brass Diya Set",
     nameHindi: "शुद्ध घी पीतल दीया",
+    description: "Illuminate your sacred space with these beautifully crafted Brass Diyas designed specifically for ghee lamps. The traditional design ensures steady flame and optimal ghee consumption. Each diya is hand-finished with intricate patterns that create mesmerizing light patterns.",
+    features: [
+      "Set of 5 brass diyas",
+      "Traditional hand-finished design",
+      "Optimized for ghee/oil burning",
+      "Stable base design",
+      "Easy to clean and maintain"
+    ],
     price: 599,
     originalPrice: 749,
     rating: 4.8,
     reviews: 178,
-    image: "/placeholder.svg",
+    images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
     category: "puja-essentials",
-    badge: "Handcrafted"
+    badge: "Handcrafted",
+    material: "Pure Brass",
+    weight: "400g",
+    inStock: true
   }
 ];
 
@@ -176,3 +242,6 @@ export const testimonials = [
     avatar: "/placeholder.svg"
   }
 ];
+
+export type Product = typeof featuredProducts[number];
+export type Category = typeof categories[number];

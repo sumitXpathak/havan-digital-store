@@ -4,6 +4,7 @@ import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun, LogOut } from "l
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useCart } from "@/contexts/CartContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,6 +16,7 @@ const Navbar = () => {
     return false;
   });
   const navigate = useNavigate();
+  const { totalItems } = useCart();
 
   useEffect(() => {
     if (isDark) {
@@ -99,9 +101,11 @@ const Navbar = () => {
             </Button>
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                0
-              </span>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
             </Button>
             
             {user ? (
