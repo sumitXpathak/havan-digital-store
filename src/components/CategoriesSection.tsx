@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { categories } from "@/data/products";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CategoriesSection = () => {
   return (
@@ -29,7 +30,7 @@ const CategoriesSection = () => {
               className="p-4 md:p-6 animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <a href={`#${category.id}`} className="block">
+              <a href="#products" className="block">
                 {/* Icon */}
                 <div className="text-4xl md:text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
                   {category.icon}
