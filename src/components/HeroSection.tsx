@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Truck, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-puja.jpg";
 
 const HeroSection = () => {
@@ -47,12 +48,16 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-wrap gap-4 mb-12 animate-slide-up animation-delay-200">
-            <Button variant="hero" size="xl">
-              Shop Now
-              <ArrowRight className="h-5 w-5" />
+            <Button variant="hero" size="xl" asChild>
+              <a href="#products">
+                Shop Now
+                <ArrowRight className="h-5 w-5" />
+              </a>
             </Button>
-            <Button variant="sacred" size="xl">
-              Explore Categories
+            <Button variant="sacred" size="xl" asChild>
+              <a href="#categories">
+                Explore Categories
+              </a>
             </Button>
           </div>
 
