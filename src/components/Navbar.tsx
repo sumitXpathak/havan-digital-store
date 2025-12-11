@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun, LogOut } from "lucide-react";
+import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useCart } from "@/contexts/CartContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,6 +18,7 @@ const Navbar = () => {
   });
   const navigate = useNavigate();
   const { totalItems } = useCart();
+  const { isAdmin } = useUserRole();
 
   useEffect(() => {
     if (isDark) {
@@ -112,6 +114,13 @@ const Navbar = () => {
             
             {user ? (
               <div className="hidden md:flex items-center gap-2">
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="ghost" size="icon" title="Admin Panel">
+                      <Shield className="h-4 w-4 text-primary" />
+                    </Button>
+                  </Link>
+                )}
                 <span className="text-sm text-muted-foreground truncate max-w-[120px]">
                   {user.user_metadata?.full_name || user.email?.split('@')[0]}
                 </span>
@@ -162,10 +171,19 @@ const Navbar = () => {
                   <Search className="h-5 w-5" />
                 </Button>
                 {user ? (
-                  <Button variant="ghost" className="flex-1" onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </Button>
+                  <>
+                    {isAdmin && (
+                      <Link to="/admin" onClick={() => setIsMenuOpen(false)}>
+                        <Button variant="ghost" size="icon">
+                          <Shield className="h-5 w-5 text-primary" />
+                        </Button>
+                      </Link>
+                    )}
+                    <Button variant="ghost" className="flex-1" onClick={handleLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
+                  </>
                 ) : (
                   <Button 
                     variant="saffron" 
