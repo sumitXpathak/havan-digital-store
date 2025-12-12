@@ -64,10 +64,10 @@ const Navbar = () => {
             <span className="text-2xl">🙏</span>
             <div className="flex flex-col">
               <span className="font-heading text-xl md:text-2xl font-bold text-primary">
-                Havan Samidha
+                Shree Sanatan Puja Path
               </span>
               <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block">
-                हवन समिधा & पूजा सामग्री
+                श्री सनातन पूजा पाठ
               </span>
             </div>
           </Link>
