@@ -47,10 +47,10 @@ const Footer = () => {
               <span className="text-3xl">🙏</span>
               <div className="flex flex-col">
                 <span className="font-heading text-2xl font-bold text-secondary-foreground">
-                  Havan Samidha
+                  Shree Sanatan Puja Path
                 </span>
                 <span className="text-xs text-secondary-foreground/70">
-                  हवन समिधा & पूजा सामग्री
+                  श्री सनातन पूजा पाठ
                 </span>
               </div>
             </a>
@@ -146,7 +146,7 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-3">
                 <Mail className="h-5 w-5 text-primary-foreground mt-0.5" />
-                <p className="text-secondary-foreground">contact@havansamidha.com</p>
+                <p className="text-secondary-foreground">contact@shreesanatanpujapath.com</p>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-primary-foreground mt-0.5" />
@@ -163,7 +163,7 @@ const Footer = () => {
         <div className="border-t border-secondary-foreground/10 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-secondary-foreground/70">
-              © {currentYear} Havan Samidha. All rights reserved.
+              © {currentYear} Shree Sanatan Puja Path. All rights reserved.
             </p>
             <div className="flex flex-wrap gap-4">
               {policies.map((policy) => (
