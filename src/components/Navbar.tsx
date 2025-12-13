@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useCart } from "@/contexts/CartContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import logo from "@/assets/logo.jpg";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,13 +62,10 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl">🙏</span>
+            <img src={logo} alt="श्री Sanatan Logo" className="h-10 w-10 rounded-full object-cover" />
             <div className="flex flex-col">
-              <span className="font-heading text-xl md:text-2xl font-bold text-primary">
-                Shree Sanatan Puja Path
-              </span>
-              <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block">
-                श्री सनातन पूजा पाठ
+              <span className="font-heading text-lg md:text-xl font-bold text-primary">
+                ꧁•श्री•SANATAN•꧂
               </span>
             </div>
           </Link>
