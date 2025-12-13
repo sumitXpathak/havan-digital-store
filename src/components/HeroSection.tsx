@@ -48,9 +48,9 @@ const HeroSection = () => {
               </a>
             </Button>
             <Button variant="sacred" size="xl" asChild>
-              <a href="#categories">
+              <Link to="/products">
                 Explore Categories
-              </a>
+              </Link>
             </Button>
           </div>
 
@@ -60,7 +60,7 @@ const HeroSection = () => {
               <div className="p-2 bg-primary/10 rounded-full">
                 <Truck className="h-4 w-4 text-primary" />
               </div>
-              <span>Free Delivery Above ₹499</span>
+              <span>Free Delivery Above ₹399</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <div className="p-2 bg-primary/10 rounded-full">

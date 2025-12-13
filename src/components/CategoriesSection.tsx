@@ -30,7 +30,7 @@ const CategoriesSection = () => {
               className="p-4 md:p-6 animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <a href="#products" className="block">
+              <Link to={`/products?category=${category.id}`} className="block">
                 {/* Icon */}
                 <div className="text-4xl md:text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
                   {category.icon}
@@ -71,7 +71,7 @@ const CategoriesSection = () => {
                   <span>Explore</span>
                   <ArrowRight className="h-4 w-4 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-1 transition-all" />
                 </div>
-              </a>
+              </Link>
             </Card>
           ))}
         </div>
