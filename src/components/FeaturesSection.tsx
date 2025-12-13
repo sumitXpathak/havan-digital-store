@@ -4,7 +4,7 @@ const features = [
   {
     icon: Truck,
     title: "Free Delivery",
-    description: "Free shipping on orders above ₹499 across India",
+    description: "Free shipping on orders above ₹399 across India",
   },
   {
     icon: Shield,
@@ -23,8 +23,8 @@ const features = [
   },
   {
     icon: Headphones,
-    title: "24/7 Support",
-    description: "Customer support available around the clock",
+    title: "Customer Support",
+    description: "Available 8AM-8PM (Mon-Sat)",
   },
   {
     icon: CreditCard,
