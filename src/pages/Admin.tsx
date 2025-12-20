@@ -77,7 +77,10 @@ const Admin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border hover:border-primary/50 transition-colors cursor-pointer">
+          <Card 
+            className="bg-card border-border hover:border-primary/50 transition-colors cursor-pointer"
+            onClick={() => navigate('/admin/orders')}
+          >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5 text-primary" />
