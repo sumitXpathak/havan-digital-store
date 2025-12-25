@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.send-order-notification]
 verify_jwt = false
+
+[functions.list-users]
+verify_jwt = false
+
+[functions.manage-user-role]
+verify_jwt = false
