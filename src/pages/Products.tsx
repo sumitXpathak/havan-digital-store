@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { categories, featuredProducts } from "@/data/products";
+import { categories } from "@/data/products";
+import { supabase } from "@/integrations/supabase/client";
 import { Star, ShoppingCart, Search, SlidersHorizontal, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
@@ -19,21 +20,63 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+interface Product {
+  id: string;
+  name: string;
+  name_hindi: string | null;
+  description: string | null;
+  price: number;
+  original_price: number | null;
+  rating: number | null;
+  reviews_count: number | null;
+  images: string[] | null;
+  category: string;
+  badge: string | null;
+  in_stock: boolean | null;
+}
+
 const Products = () => {
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get("category");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
   const [searchQuery, setSearchQuery] = useState("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [minRating, setMinRating] = useState(0);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { addToCart } = useCart();
+
+  // Fetch products from database
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('in_stock', true)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setProducts(data);
+        // Update price range based on actual data
+        if (data.length > 0) {
+          const prices = data.map(p => p.price);
+          setPriceRange([Math.min(...prices), Math.max(...prices)]);
+        }
+      }
+      setIsLoading(false);
+    };
+
+    fetchProducts();
+  }, []);
 
   // Calculate price bounds
   const priceBounds = useMemo(() => {
-    const prices = featuredProducts.map(p => p.price);
+    if (products.length === 0) return { min: 0, max: 10000 };
+    const prices = products.map(p => p.price);
     return { min: Math.min(...prices), max: Math.max(...prices) };
-  }, []);
+  }, [products]);
 
   useEffect(() => {
     setSelectedCategory(categoryParam);
@@ -41,7 +84,7 @@ const Products = () => {
 
   // Apply all filters
   const filteredProducts = useMemo(() => {
-    return featuredProducts.filter((product) => {
+    return products.filter((product) => {
       // Category filter
       if (selectedCategory && product.category !== selectedCategory) return false;
       
@@ -49,8 +92,8 @@ const Products = () => {
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesName = product.name.toLowerCase().includes(query);
-        const matchesHindi = product.nameHindi.toLowerCase().includes(query);
-        const matchesDescription = product.description.toLowerCase().includes(query);
+        const matchesHindi = product.name_hindi?.toLowerCase().includes(query);
+        const matchesDescription = product.description?.toLowerCase().includes(query);
         if (!matchesName && !matchesHindi && !matchesDescription) return false;
       }
       
@@ -58,11 +101,11 @@ const Products = () => {
       if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
       
       // Rating filter
-      if (product.rating < minRating) return false;
+      if ((product.rating || 0) < minRating) return false;
       
       return true;
     });
-  }, [selectedCategory, searchQuery, priceRange, minRating]);
+  }, [products, selectedCategory, searchQuery, priceRange, minRating]);
 
   const selectedCategoryData = categories.find((cat) => cat.id === selectedCategory);
 
@@ -226,7 +269,7 @@ const Products = () => {
               {/* Results Count */}
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-muted-foreground">
-                  Showing {filteredProducts.length} of {featuredProducts.length} products
+                  Showing {filteredProducts.length} of {products.length} products
                 </p>
                 {hasActiveFilters && (
                   <Button variant="ghost" size="sm" onClick={clearFilters} className="hidden sm:flex lg:hidden">
@@ -236,14 +279,19 @@ const Products = () => {
                 )}
               </div>
 
-              {filteredProducts.length > 0 ? (
+              {isLoading ? (
+                <div className="text-center py-16">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-muted-foreground mt-4">Loading products...</p>
+                </div>
+              ) : filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   {filteredProducts.map((product) => (
                     <Card key={product.id} className="overflow-hidden group">
                       <Link to={`/product/${product.id}`}>
                         <div className="relative aspect-square bg-muted">
                           <img
-                            src={product.images[0]}
+                            src={product.images?.[0] || '/placeholder.svg'}
                             alt={product.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
@@ -258,26 +306,26 @@ const Products = () => {
                           <h3 className="font-heading font-semibold text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-2">
                             {product.name}
                           </h3>
-                          <p className="text-xs text-primary/70 mb-2">{product.nameHindi}</p>
+                          <p className="text-xs text-primary/70 mb-2">{product.name_hindi}</p>
                         </Link>
                         
                         {/* Rating */}
                         <div className="flex items-center gap-1 mb-3">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">{product.rating}</span>
-                          <span className="text-xs text-muted-foreground">({product.reviews})</span>
+                          <span className="text-sm font-medium">{product.rating || 0}</span>
+                          <span className="text-xs text-muted-foreground">({product.reviews_count || 0})</span>
                         </div>
                         
                         {/* Price */}
                         <div className="flex items-center gap-2 mb-4">
                           <span className="text-lg font-bold text-foreground">₹{product.price}</span>
-                          {product.originalPrice > product.price && (
+                          {product.original_price && product.original_price > product.price && (
                             <>
                               <span className="text-sm text-muted-foreground line-through">
-                                ₹{product.originalPrice}
+                                ₹{product.original_price}
                               </span>
                               <Badge variant="secondary" className="text-xs">
-                                {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                                {Math.round(((product.original_price - product.price) / product.original_price) * 100)}% OFF
                               </Badge>
                             </>
                           )}
@@ -290,9 +338,9 @@ const Products = () => {
                             addToCart({
                               id: product.id,
                               name: product.name,
-                              nameHindi: product.nameHindi,
+                              nameHindi: product.name_hindi || '',
                               price: product.price,
-                              image: product.images[0],
+                              image: product.images?.[0] || '/placeholder.svg',
                             });
                           }}
                         >
