@@ -20,6 +20,7 @@ import {
   Plus,
   Check
 } from "lucide-react";
+import ReviewsSection from "@/components/ReviewsSection";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -268,6 +269,9 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <ReviewsSection productId={product.id} />
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
