@@ -13,9 +13,36 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("No authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error("Invalid authentication:", userError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Authenticated user:", user.id);
+
     const { amount, currency = "INR", receipt, notes } = await req.json();
 
-    console.log("Creating Razorpay order:", { amount, currency, receipt });
+    console.log("Creating Razorpay order:", { amount, currency, receipt, userId: user.id });
 
     // Validate amount
     if (!amount || amount <= 0) {
@@ -44,7 +71,7 @@ serve(async (req) => {
       amount: Math.round(amount * 100), // Convert to paise
       currency,
       receipt: receipt || `receipt_${Date.now()}`,
-      notes: notes || {},
+      notes: { ...notes, user_id: user.id },
     };
 
     console.log("Sending to Razorpay:", orderData);
