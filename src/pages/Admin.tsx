@@ -102,7 +102,10 @@ const Admin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border hover:border-primary/50 transition-colors cursor-pointer">
+          <Card 
+            className="bg-card border-border hover:border-primary/50 transition-colors cursor-pointer"
+            onClick={() => navigate('/admin/users')}
+          >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
@@ -110,7 +113,7 @@ const Admin = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm">View customer accounts and manage roles</p>
+              <p className="text-muted-foreground text-sm">View customer accounts and manage admin roles</p>
             </CardContent>
           </Card>
         </div>
