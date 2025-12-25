@@ -50,6 +50,57 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_store: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          expires_at: string
+          otp: string
+          phone: string
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          expires_at: string
+          otp: string
+          phone: string
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          expires_at?: string
+          otp?: string
+          phone?: string
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          locked_until: string | null
+          phone: string
+          send_attempts: number | null
+          send_window_start: string | null
+          verify_attempts: number | null
+          verify_window_start: string | null
+        }
+        Insert: {
+          locked_until?: string | null
+          phone: string
+          send_attempts?: number | null
+          send_window_start?: string | null
+          verify_attempts?: number | null
+          verify_window_start?: string | null
+        }
+        Update: {
+          locked_until?: string | null
+          phone?: string
+          send_attempts?: number | null
+          send_window_start?: string | null
+          verify_attempts?: number | null
+          verify_window_start?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
