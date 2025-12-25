@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun, LogOut, Shield } from "lucide-react";
+import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun, LogOut, Shield, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -112,6 +112,11 @@ const Navbar = () => {
             
             {user ? (
               <div className="hidden md:flex items-center gap-2">
+                <Link to="/orders">
+                  <Button variant="ghost" size="icon" title="My Orders">
+                    <Package className="h-4 w-4" />
+                  </Button>
+                </Link>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="ghost" size="icon" title="Admin Panel">
@@ -170,6 +175,11 @@ const Navbar = () => {
                 </Button>
                 {user ? (
                   <>
+                    <Link to="/orders" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" size="icon" title="My Orders">
+                        <Package className="h-5 w-5" />
+                      </Button>
+                    </Link>
                     {isAdmin && (
                       <Link to="/admin" onClick={() => setIsMenuOpen(false)}>
                         <Button variant="ghost" size="icon">
