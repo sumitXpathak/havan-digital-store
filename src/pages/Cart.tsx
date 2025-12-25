@@ -124,6 +124,7 @@ const Cart = () => {
                   order_data: {
                     user_id: user.id,
                     phone: checkoutForm.phone,
+                    email: user.email,
                     shipping_address: checkoutForm.address,
                     items: items.map((item) => ({
                       id: item.id,

@@ -120,6 +120,28 @@ serve(async (req) => {
 
       console.log("Order saved:", orderResult.id);
 
+      // Send order notifications (email + SMS) - fire and forget
+      const notificationUrl = `${supabaseUrl}/functions/v1/send-order-notification`;
+      fetch(notificationUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+        },
+        body: JSON.stringify({
+          phone: order_data.phone,
+          email: order_data.email,
+          order_id: orderResult.id,
+          items: order_data.items,
+          total_amount: order_data.total_amount,
+          shipping_address: order_data.shipping_address,
+        }),
+      }).then((res) => {
+        console.log("Notification sent, status:", res.status);
+      }).catch((err) => {
+        console.error("Notification error:", err);
+      });
+
       return new Response(
         JSON.stringify({ 
           verified: true, 
