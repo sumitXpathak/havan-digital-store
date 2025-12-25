@@ -74,6 +74,66 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          badge: string | null
+          category: string
+          created_at: string
+          description: string | null
+          features: string[] | null
+          id: string
+          images: string[] | null
+          in_stock: boolean | null
+          material: string | null
+          name: string
+          name_hindi: string | null
+          original_price: number | null
+          price: number
+          rating: number | null
+          reviews_count: number | null
+          updated_at: string
+          weight: string | null
+        }
+        Insert: {
+          badge?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          images?: string[] | null
+          in_stock?: boolean | null
+          material?: string | null
+          name: string
+          name_hindi?: string | null
+          original_price?: number | null
+          price: number
+          rating?: number | null
+          reviews_count?: number | null
+          updated_at?: string
+          weight?: string | null
+        }
+        Update: {
+          badge?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          images?: string[] | null
+          in_stock?: boolean | null
+          material?: string | null
+          name?: string
+          name_hindi?: string | null
+          original_price?: number | null
+          price?: number
+          rating?: number | null
+          reviews_count?: number | null
+          updated_at?: string
+          weight?: string | null
+        }
+        Relationships: []
+      }
       rate_limits: {
         Row: {
           locked_until: string | null
