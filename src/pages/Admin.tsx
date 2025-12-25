@@ -65,7 +65,10 @@ const Admin = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="bg-card border-border hover:border-primary/50 transition-colors cursor-pointer">
+          <Card 
+            className="bg-card border-border hover:border-primary/50 transition-colors cursor-pointer"
+            onClick={() => navigate('/admin/products')}
+          >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" />
