@@ -82,9 +82,14 @@ const AdminProducts = () => {
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access this page.",
+        variant: "destructive",
+      });
       navigate('/');
     }
-  }, [isAdmin, roleLoading, navigate]);
+  }, [isAdmin, roleLoading, navigate, toast]);
 
   useEffect(() => {
     if (isAdmin) {
