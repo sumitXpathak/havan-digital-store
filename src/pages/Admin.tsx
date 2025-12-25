@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +10,18 @@ import { Package, Users, ShoppingCart, TrendingUp } from 'lucide-react';
 const Admin = () => {
   const { isAdmin, isLoading } = useUserRole();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!isLoading && !isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access this page.",
+        variant: "destructive",
+      });
       navigate('/');
     }
-  }, [isAdmin, isLoading, navigate]);
+  }, [isAdmin, isLoading, navigate, toast]);
 
   if (isLoading) {
     return (
