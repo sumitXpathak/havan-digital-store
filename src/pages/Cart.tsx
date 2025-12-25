@@ -1,13 +1,206 @@
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Link } from "react-router-dom";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, totalItems, totalPrice, clearCart } = useCart();
+  const navigate = useNavigate();
+  
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [checkoutForm, setCheckoutForm] = useState({
+    phone: "",
+    address: "",
+  });
+
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleCheckout = async () => {
+    if (!checkoutForm.phone || !checkoutForm.address) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Validate phone number (10 digits)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(checkoutForm.phone)) {
+      toast.error("Please enter a valid 10-digit phone number");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error("Failed to load payment gateway");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please login to continue");
+        navigate("/auth");
+        return;
+      }
+
+      // Create Razorpay order
+      const { data: orderData, error: orderError } = await supabase.functions.invoke(
+        "create-razorpay-order",
+        {
+          body: {
+            amount: totalPrice,
+            currency: "INR",
+            receipt: `order_${Date.now()}`,
+            notes: {
+              user_id: user.id,
+              phone: checkoutForm.phone,
+            },
+          },
+        }
+      );
+
+      if (orderError || !orderData?.orderId) {
+        console.error("Order creation error:", orderError);
+        toast.error(orderData?.error || "Failed to create order");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Configure Razorpay options
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Puja Samagri",
+        description: "Order Payment",
+        order_id: orderData.orderId,
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            // Verify payment and save order
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
+              "verify-razorpay-payment",
+              {
+                body: {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  order_data: {
+                    user_id: user.id,
+                    phone: checkoutForm.phone,
+                    shipping_address: checkoutForm.address,
+                    items: items.map((item) => ({
+                      id: item.id,
+                      name: item.name,
+                      price: item.price,
+                      quantity: item.quantity,
+                      image: item.image,
+                    })),
+                    total_amount: totalPrice,
+                  },
+                },
+              }
+            );
+
+            if (verifyError || !verifyData?.verified) {
+              console.error("Payment verification error:", verifyError);
+              toast.error("Payment verification failed");
+              return;
+            }
+
+            // Success
+            setOrderSuccess(true);
+            clearCart();
+            toast.success("Payment successful! Order placed.");
+          } catch (error) {
+            console.error("Payment handler error:", error);
+            toast.error("Something went wrong");
+          }
+        },
+        prefill: {
+          contact: checkoutForm.phone,
+        },
+        theme: {
+          color: "#f97316",
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+      setIsProcessing(false);
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("Failed to initiate payment");
+      setIsProcessing(false);
+    }
+  };
+
+  // Order success view
+  if (orderSuccess) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-1 container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-4">Order Placed Successfully!</h1>
+            <p className="text-muted-foreground mb-8">
+              Thank you for your order. We'll send you a confirmation shortly.
+            </p>
+            <Button asChild variant="hero" size="lg">
+              <Link to="/#products">
+                Continue Shopping
+              </Link>
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -151,9 +344,64 @@ const Cart = () => {
                 </div>
               </div>
 
-              <Button variant="hero" size="lg" className="w-full">
-                Proceed to Checkout
-              </Button>
+              {!showCheckout ? (
+                <Button 
+                  variant="hero" 
+                  size="lg" 
+                  className="w-full"
+                  onClick={() => setShowCheckout(true)}
+                >
+                  Proceed to Checkout
+                </Button>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="Enter 10-digit phone"
+                      value={checkoutForm.phone}
+                      onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value })}
+                      maxLength={10}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="address">Shipping Address *</Label>
+                    <Textarea
+                      id="address"
+                      placeholder="Enter your complete address"
+                      value={checkoutForm.address}
+                      onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+                  <Button 
+                    variant="hero" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={handleCheckout}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      `Pay ₹${totalPrice.toLocaleString()}`
+                    )}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setShowCheckout(false)}
+                  >
+                    Back to Cart
+                  </Button>
+                </div>
+              )}
 
               <Link
                 to="/#products"
