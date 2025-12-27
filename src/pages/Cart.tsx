@@ -18,6 +18,8 @@ declare global {
   }
 }
 
+const MINIMUM_ORDER_VALUE = 399;
+
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, totalItems, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
@@ -29,6 +31,9 @@ const Cart = () => {
     phone: "",
     address: "",
   });
+
+  const isMinimumOrderMet = totalPrice >= MINIMUM_ORDER_VALUE;
+  const amountNeeded = MINIMUM_ORDER_VALUE - totalPrice;
 
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -345,14 +350,27 @@ const Cart = () => {
                 </div>
               </div>
 
+              {/* Minimum Order Warning */}
+              {!isMinimumOrderMet && (
+                <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">
+                    ₹{MINIMUM_ORDER_VALUE} से कम का ऑर्डर स्वीकार नहीं है
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                    कृपया ₹{amountNeeded.toLocaleString()} और जोड़ें
+                  </p>
+                </div>
+              )}
+
               {!showCheckout ? (
                 <Button 
                   variant="hero" 
                   size="lg" 
                   className="w-full"
                   onClick={() => setShowCheckout(true)}
+                  disabled={!isMinimumOrderMet}
                 >
-                  Proceed to Checkout
+                  {isMinimumOrderMet ? 'Proceed to Checkout' : `Min. Order ₹${MINIMUM_ORDER_VALUE}`}
                 </Button>
               ) : (
                 <div className="space-y-4">
