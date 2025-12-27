@@ -255,7 +255,7 @@ const ProductDetail = () => {
               <div className="grid grid-cols-3 gap-4 pt-4 border-t">
                 <div className="flex flex-col items-center text-center gap-2">
                   <Truck className="h-6 w-6 text-primary" />
-                  <span className="text-xs text-muted-foreground">Free Delivery</span>
+                  <span className="text-xs text-muted-foreground">Fast Shipping</span>
                 </div>
                 <div className="flex flex-col items-center text-center gap-2">
                   <Shield className="h-6 w-6 text-primary" />
