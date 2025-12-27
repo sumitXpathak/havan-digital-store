@@ -125,7 +125,12 @@ serve(async (req) => {
       .eq('phone', phone);
 
     // Check if user exists with this phone
-    const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
+    const generatedEmail = `${phone.replace("+", "")}@phone.auth`;
+    
+    // Get all users
+    const { data: userList, error: listError } = await supabase.auth.admin.listUsers({
+      perPage: 1000
+    });
     
     if (listError) {
       console.error("Error listing users:", listError);
@@ -134,12 +139,23 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Check by phone or by the generated email (phone without + prefix)
-    const generatedEmail = `${phone.replace("+", "")}@phone.auth`;
-    const existingUser = existingUsers.users.find(
-      u => u.phone === phone || u.email === generatedEmail
-    );
+    
+    console.log(`Searching for user with phone: ${phone} or email: ${generatedEmail}`);
+    console.log(`Total users found: ${userList?.users?.length || 0}`);
+    
+    // Find user by phone (exact match or with/without +) or by generated email
+    const existingUser = userList?.users?.find(u => {
+      const phoneMatch = u.phone === phone || 
+                         u.phone === phone.replace("+", "") ||
+                         `+${u.phone}` === phone;
+      const emailMatch = u.email === generatedEmail;
+      
+      if (phoneMatch || emailMatch) {
+        console.log(`Found user match: ${u.id}, phone: ${u.phone}, email: ${u.email}`);
+      }
+      
+      return phoneMatch || emailMatch;
+    });
 
     if (existingUser) {
       console.log(`Found existing user: ${existingUser.id}`);
@@ -183,10 +199,20 @@ serve(async (req) => {
         console.error("Create user error:", createError);
         
         // If phone exists error, try to find user again and sign in
-        if (createError.message?.includes('phone_exists') || createError.message?.includes('Phone number already')) {
+        if (createError.message?.includes('phone_exists') || createError.message?.includes('Phone number already') || (createError as any).code === 'phone_exists') {
           console.log("Phone exists, trying to find and sign in user...");
-          const { data: retryUsers } = await supabase.auth.admin.listUsers();
-          const retryUser = retryUsers?.users.find(u => u.phone === phone || u.email === generatedEmail);
+          const { data: retryUsers } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+          
+          // More flexible matching
+          const retryUser = retryUsers?.users.find(u => {
+            const phoneMatch = u.phone === phone || 
+                               u.phone === phone.replace("+", "") ||
+                               `+${u.phone}` === phone;
+            const emailMatch = u.email === generatedEmail;
+            return phoneMatch || emailMatch;
+          });
+          
+          console.log(`Retry found user: ${retryUser?.id || 'not found'}`);
           
           if (retryUser) {
             const { data: signInData } = await supabase.auth.admin.generateLink({
