@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Truck, Shield } from "lucide-react";
+import { ArrowRight, Sparkles, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-puja.jpg";
 
@@ -56,12 +56,6 @@ const HeroSection = () => {
 
           {/* Trust Badges */}
           <div className="flex flex-wrap gap-6 animate-slide-up animation-delay-300">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Truck className="h-4 w-4 text-primary" />
-              </div>
-              <span>Free Delivery Above ₹399</span>
-            </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <div className="p-2 bg-primary/10 rounded-full">
                 <Shield className="h-4 w-4 text-primary" />

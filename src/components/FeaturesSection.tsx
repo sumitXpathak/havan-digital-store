@@ -1,11 +1,6 @@
-import { Truck, Shield, Clock, Award, Headphones, CreditCard } from "lucide-react";
+import { Shield, Clock, Award, Headphones, CreditCard } from "lucide-react";
 
 const features = [
-  {
-    icon: Truck,
-    title: "Free Delivery",
-    description: "Free shipping on orders above ₹399 across India",
-  },
   {
     icon: Shield,
     title: "100% Authentic",
