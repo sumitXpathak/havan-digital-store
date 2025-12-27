@@ -143,8 +143,8 @@ const Navbar = () => {
                     </Button>
                   </Link>
                 )}
-                <span className="text-sm text-muted-foreground truncate max-w-[120px]">
-                  {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                <span className="text-sm font-medium text-foreground truncate max-w-[120px]">
+                  {user.user_metadata?.full_name || user.phone || 'User'}
                 </span>
                 <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
                   <LogOut className="h-4 w-4" />
@@ -215,6 +215,10 @@ const Navbar = () => {
                 </Link>
                 {user ? (
                   <>
+                    <span className="text-sm text-muted-foreground truncate max-w-[100px] flex items-center">
+                      <User className="h-4 w-4 mr-1" />
+                      {user.user_metadata?.full_name || user.phone || 'User'}
+                    </span>
                     <Link to="/orders" onClick={() => setIsMenuOpen(false)}>
                       <Button variant="ghost" size="icon" title="My Orders">
                         <Package className="h-5 w-5" />
@@ -227,9 +231,8 @@ const Navbar = () => {
                         </Button>
                       </Link>
                     )}
-                    <Button variant="ghost" className="flex-1" onClick={handleLogout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
+                    <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+                      <LogOut className="h-4 w-4" />
                     </Button>
                   </>
                 ) : (
