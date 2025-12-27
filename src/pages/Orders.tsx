@@ -4,9 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Package, ArrowLeft, Loader2, ShoppingBag } from "lucide-react";
+import OrderTracker from "@/components/OrderTracker";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import EmptyState from "@/components/EmptyState";
+import { Package, ArrowLeft, ShoppingBag, Eye } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -30,6 +39,7 @@ const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -116,7 +126,7 @@ const Orders = () => {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1 container mx-auto px-4 py-16 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <LoadingSpinner size="lg" text="Loading your orders..." />
         </main>
         <Footer />
       </div>
@@ -128,21 +138,16 @@ const Orders = () => {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1 container mx-auto px-4 py-16">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-              <Package className="w-12 h-12 text-muted-foreground" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground mb-4">No Orders Yet</h1>
-            <p className="text-muted-foreground mb-8">
-              You haven't placed any orders yet. Start shopping to see your orders here!
-            </p>
-            <Button asChild variant="hero" size="lg">
-              <Link to="/#products">
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Start Shopping
-              </Link>
-            </Button>
-          </div>
+          <EmptyState
+            icon={Package}
+            title="No Orders Yet"
+            description="You haven't placed any orders yet. Start shopping to see your orders here!"
+            action={{
+              label: "Start Shopping",
+              onClick: () => navigate('/products'),
+              icon: ShoppingBag,
+            }}
+          />
         </main>
         <Footer />
       </div>
@@ -152,7 +157,7 @@ const Orders = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 py-8 pt-24">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
           <Link to="/" className="hover:text-primary transition-colors">Home</Link>
@@ -163,7 +168,7 @@ const Orders = () => {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-foreground">My Orders</h1>
           <Button variant="outline" asChild>
-            <Link to="/#products">
+            <Link to="/products">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Continue Shopping
             </Link>
@@ -187,11 +192,21 @@ const Orders = () => {
                     Placed on {formatDate(order.created_at)}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Total Amount</p>
-                  <p className="text-xl font-bold text-primary">
-                    ₹{order.total_amount.toLocaleString()}
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Total Amount</p>
+                    <p className="text-xl font-bold text-primary">
+                      ₹{order.total_amount.toLocaleString()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedOrder(order)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Track Order
+                  </Button>
                 </div>
               </div>
 
@@ -207,7 +222,7 @@ const Orders = () => {
                   Items ({order.items.length})
                 </p>
                 <div className="space-y-3">
-                  {order.items.map((item, index) => (
+                  {order.items.slice(0, 2).map((item, index) => (
                     <div key={index} className="flex items-center gap-4">
                       <img
                         src={item.image}
@@ -227,11 +242,33 @@ const Orders = () => {
                       </p>
                     </div>
                   ))}
+                  {order.items.length > 2 && (
+                    <p className="text-sm text-muted-foreground">
+                      +{order.items.length - 2} more items
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>
           ))}
         </div>
+
+        {/* Order Tracking Dialog */}
+        <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                Order #{selectedOrder?.id.slice(0, 8).toUpperCase()}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedOrder && (
+              <OrderTracker
+                status={selectedOrder.status}
+                createdAt={selectedOrder.created_at}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
       <Footer />
     </div>

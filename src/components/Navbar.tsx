@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import logo from "@/assets/logo.jpg";
 
@@ -19,6 +20,7 @@ const Navbar = () => {
   });
   const navigate = useNavigate();
   const { totalItems } = useCart();
+  const { items: wishlistItems } = useWishlist();
   const { isAdmin } = useUserRole();
 
   useEffect(() => {
@@ -51,7 +53,7 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Categories", href: "#categories" },
-    { name: "Products", href: "#products" },
+    { name: "Products", href: "/products" },
     { name: "About", href: "#about" },
     { name: "Contact", href: "#contact" },
   ];
@@ -73,24 +75,41 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-              >
-                {link.name}
-              </a>
+              link.href.startsWith('/') ? (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {link.name}
+                </Link>
+              ) : (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {link.name}
+                </a>
+              )
             ))}
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-2 md:gap-4">
-            <Button variant="ghost" size="icon" className="hidden md:flex">
+            <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => navigate('/products')}>
               <Search className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="hidden md:flex">
-              <Heart className="h-5 w-5" />
-            </Button>
+            <Link to="/wishlist">
+              <Button variant="ghost" size="icon" className="relative hidden md:flex">
+                <Heart className="h-5 w-5" />
+                {wishlistItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    {wishlistItems.length > 99 ? "99+" : wishlistItems.length}
+                  </span>
+                )}
+              </Button>
+            </Link>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -133,12 +152,12 @@ const Navbar = () => {
               </div>
             ) : (
               <Button 
-                variant="saffron" 
+                variant="default" 
                 size="sm" 
                 className="hidden md:flex"
                 onClick={() => navigate('/auth')}
               >
-                <User className="h-4 w-4" />
+                <User className="h-4 w-4 mr-2" />
                 Login
               </Button>
             )}
@@ -160,19 +179,40 @@ const Navbar = () => {
           <div className="lg:hidden py-4 border-t border-border animate-fade-in">
             <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  className="px-4 py-3 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.name}
-                </a>
+                link.href.startsWith('/') ? (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    className="px-4 py-3 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {link.name}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    className="px-4 py-3 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {link.name}
+                  </a>
+                )
               ))}
               <div className="pt-4 px-4 flex gap-2">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" onClick={() => { navigate('/products'); setIsMenuOpen(false); }}>
                   <Search className="h-5 w-5" />
                 </Button>
+                <Link to="/wishlist" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Heart className="h-5 w-5" />
+                    {wishlistItems.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs w-4 h-4 rounded-full flex items-center justify-center text-[10px]">
+                        {wishlistItems.length}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
                 {user ? (
                   <>
                     <Link to="/orders" onClick={() => setIsMenuOpen(false)}>
@@ -194,14 +234,14 @@ const Navbar = () => {
                   </>
                 ) : (
                   <Button 
-                    variant="saffron" 
+                    variant="default" 
                     className="flex-1"
                     onClick={() => {
                       navigate('/auth');
                       setIsMenuOpen(false);
                     }}
                   >
-                    <User className="h-4 w-4" />
+                    <User className="h-4 w-4 mr-2" />
                     Login / Register
                   </Button>
                 )}
