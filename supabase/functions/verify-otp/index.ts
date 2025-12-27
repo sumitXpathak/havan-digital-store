@@ -1,10 +1,23 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://lovable.dev',
+  'https://id-preview--jxbgvwvsbamxfeekofjz.lovable.app',
+  'https://jxbgvwvsbamxfeekofjz.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+function getCorsHeaders(origin: string) {
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Credentials": "true",
+  };
+}
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -14,6 +27,9 @@ const MAX_VERIFY_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 serve(async (req) => {
+  const origin = req.headers.get('origin') || '';
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -71,7 +87,6 @@ serve(async (req) => {
 
     // Check if OTP expired
     if (new Date() > new Date(storedData.expires_at)) {
-      // Delete expired OTP
       await supabase.from('otp_store').delete().eq('phone', phone);
       return new Response(
         JSON.stringify({ error: "OTP has expired. Please request a new OTP." }),
@@ -81,7 +96,6 @@ serve(async (req) => {
 
     // Check max attempts on this OTP
     if (storedData.attempts >= MAX_VERIFY_ATTEMPTS) {
-      // Lock the account
       await supabase
         .from('rate_limits')
         .upsert({
@@ -93,7 +107,6 @@ serve(async (req) => {
           send_window_start: rateLimit?.send_window_start || new Date().toISOString(),
         });
       
-      // Delete the OTP
       await supabase.from('otp_store').delete().eq('phone', phone);
 
       return new Response(
@@ -104,7 +117,6 @@ serve(async (req) => {
 
     // Check if OTP matches
     if (storedData.otp !== otp) {
-      // Increment attempt counter
       await supabase
         .from('otp_store')
         .update({ attempts: storedData.attempts + 1 })
@@ -142,7 +154,6 @@ serve(async (req) => {
     const existingUser = existingUsers.users.find(u => u.phone === phone);
 
     if (existingUser) {
-      // User exists, generate magic link token for sign in
       const { data: signInData, error: signInError } = await supabase.auth.admin.generateLink({
         type: "magiclink",
         email: existingUser.email || `${phone.replace("+", "")}@phone.auth`,
@@ -156,7 +167,6 @@ serve(async (req) => {
         );
       }
 
-      // Return user session info - removed isNewUser to prevent account enumeration
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -167,7 +177,6 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      // Create new user
       const email = `${phone.replace("+", "")}@phone.auth`;
       
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
@@ -189,7 +198,6 @@ serve(async (req) => {
         );
       }
 
-      // Generate sign in link for new user
       const { data: signInData, error: signInError } = await supabase.auth.admin.generateLink({
         type: "magiclink",
         email,
@@ -203,7 +211,6 @@ serve(async (req) => {
         );
       }
 
-      // Return user session info - removed isNewUser to prevent account enumeration
       return new Response(
         JSON.stringify({ 
           success: true, 
