@@ -135,12 +135,17 @@ serve(async (req) => {
       );
     }
 
-    const existingUser = existingUsers.users.find(u => u.phone === phone);
+    // Check by phone or by the generated email (phone without + prefix)
+    const generatedEmail = `${phone.replace("+", "")}@phone.auth`;
+    const existingUser = existingUsers.users.find(
+      u => u.phone === phone || u.email === generatedEmail
+    );
 
     if (existingUser) {
+      console.log(`Found existing user: ${existingUser.id}`);
       const { data: signInData, error: signInError } = await supabase.auth.admin.generateLink({
         type: "magiclink",
-        email: existingUser.email || `${phone.replace("+", "")}@phone.auth`,
+        email: existingUser.email || generatedEmail,
       });
 
       if (signInError) {
@@ -161,11 +166,11 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      const email = `${phone.replace("+", "")}@phone.auth`;
+      console.log(`Creating new user with phone: ${phone}`);
       
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
         phone,
-        email,
+        email: generatedEmail,
         email_confirm: true,
         phone_confirm: true,
         user_metadata: {
@@ -176,6 +181,31 @@ serve(async (req) => {
 
       if (createError) {
         console.error("Create user error:", createError);
+        
+        // If phone exists error, try to find user again and sign in
+        if (createError.message?.includes('phone_exists') || createError.message?.includes('Phone number already')) {
+          console.log("Phone exists, trying to find and sign in user...");
+          const { data: retryUsers } = await supabase.auth.admin.listUsers();
+          const retryUser = retryUsers?.users.find(u => u.phone === phone || u.email === generatedEmail);
+          
+          if (retryUser) {
+            const { data: signInData } = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: retryUser.email || generatedEmail,
+            });
+            
+            return new Response(
+              JSON.stringify({ 
+                success: true, 
+                userId: retryUser.id,
+                token: signInData?.properties?.hashed_token,
+                actionLink: signInData?.properties?.action_link,
+              }),
+              { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+        
         return new Response(
           JSON.stringify({ error: "Failed to create account. Please try again." }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -184,7 +214,7 @@ serve(async (req) => {
 
       const { data: signInData, error: signInError } = await supabase.auth.admin.generateLink({
         type: "magiclink",
-        email,
+        email: generatedEmail,
       });
 
       if (signInError) {
