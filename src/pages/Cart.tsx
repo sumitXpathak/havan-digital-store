@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link, useNavigate } from "react-router-dom";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2, CheckCircle, MapPin } from "lucide-react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -20,6 +20,44 @@ declare global {
 
 const MINIMUM_ORDER_VALUE = 399;
 
+// Shipping zones configuration
+// Base location: Varanasi (UP) - 221001
+const SHIPPING_ZONES = {
+  local: {
+    name: "Local (Varanasi)",
+    charge: 30,
+    pincodePrefix: ["221"], // Varanasi area
+  },
+  state: {
+    name: "Uttar Pradesh",
+    charge: 50,
+    pincodePrefix: ["20", "21", "22", "23", "24", "25", "26", "27", "28"], // UP pincodes
+  },
+  national: {
+    name: "Rest of India",
+    charge: 80,
+  },
+};
+
+const getShippingZone = (pincode: string): { zone: string; charge: number; zoneName: string } => {
+  if (!pincode || pincode.length < 3) {
+    return { zone: "unknown", charge: 0, zoneName: "Enter pincode" };
+  }
+
+  // Check local first (most specific)
+  if (SHIPPING_ZONES.local.pincodePrefix.some(prefix => pincode.startsWith(prefix))) {
+    return { zone: "local", charge: SHIPPING_ZONES.local.charge, zoneName: SHIPPING_ZONES.local.name };
+  }
+
+  // Check state
+  if (SHIPPING_ZONES.state.pincodePrefix.some(prefix => pincode.startsWith(prefix))) {
+    return { zone: "state", charge: SHIPPING_ZONES.state.charge, zoneName: SHIPPING_ZONES.state.name };
+  }
+
+  // Default to national
+  return { zone: "national", charge: SHIPPING_ZONES.national.charge, zoneName: SHIPPING_ZONES.national.name };
+};
+
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, totalItems, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
@@ -27,10 +65,15 @@ const Cart = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [pincode, setPincode] = useState("");
   const [checkoutForm, setCheckoutForm] = useState({
     phone: "",
     address: "",
   });
+
+  const shippingInfo = useMemo(() => getShippingZone(pincode), [pincode]);
+  const shippingCharge = shippingInfo.zone !== "unknown" ? shippingInfo.charge : 0;
+  const grandTotal = totalPrice + shippingCharge;
 
   const isMinimumOrderMet = totalPrice >= MINIMUM_ORDER_VALUE;
   const amountNeeded = MINIMUM_ORDER_VALUE - totalPrice;
@@ -62,6 +105,12 @@ const Cart = () => {
       return;
     }
 
+    // Validate pincode
+    if (!pincode || pincode.length !== 6) {
+      toast.error("Please enter a valid 6-digit pincode");
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -86,7 +135,7 @@ const Cart = () => {
         "create-razorpay-order",
         {
           body: {
-            amount: totalPrice,
+            amount: grandTotal,
             currency: "INR",
             receipt: `order_${Date.now()}`,
             notes: {
@@ -130,7 +179,7 @@ const Cart = () => {
                     user_id: user.id,
                     phone: checkoutForm.phone,
                     email: user.email,
-                    shipping_address: checkoutForm.address,
+                    shipping_address: `${checkoutForm.address}\nPincode: ${pincode}`,
                     items: items.map((item) => ({
                       id: item.id,
                       name: item.name,
@@ -138,7 +187,9 @@ const Cart = () => {
                       quantity: item.quantity,
                       image: item.image,
                     })),
-                    total_amount: totalPrice,
+                    total_amount: grandTotal,
+                    shipping_charge: shippingCharge,
+                    shipping_zone: shippingInfo.zoneName,
                   },
                 },
               }
@@ -337,12 +388,47 @@ const Cart = () => {
                   <span>Subtotal ({totalItems} items)</span>
                   <span>₹{totalPrice.toLocaleString()}</span>
                 </div>
+                
+                {/* Pincode Input for Shipping */}
+                <div className="pt-2">
+                  <Label htmlFor="pincode" className="text-sm font-medium">
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    Delivery Pincode
+                  </Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="pincode"
+                      type="text"
+                      placeholder="Enter 6-digit pincode"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      maxLength={6}
+                      className="flex-1"
+                    />
+                  </div>
+                  {pincode.length === 6 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Zone: {shippingInfo.zoneName}
+                    </p>
+                  )}
+                </div>
+
+                {/* Shipping Charge */}
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Shipping</span>
+                  {pincode.length === 6 ? (
+                    <span>₹{shippingCharge}</span>
+                  ) : (
+                    <span className="text-xs italic">Enter pincode</span>
+                  )}
+                </div>
+
                 <div className="border-t border-border pt-4">
                   <div className="flex justify-between text-lg font-bold text-foreground">
                     <span>Total</span>
-                    <span>₹{totalPrice.toLocaleString()}</span>
+                    <span>₹{grandTotal.toLocaleString()}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Including all taxes</p>
+                  <p className="text-xs text-muted-foreground mt-1">Including all taxes & shipping</p>
                 </div>
               </div>
 
@@ -364,9 +450,13 @@ const Cart = () => {
                   size="lg" 
                   className="w-full"
                   onClick={() => setShowCheckout(true)}
-                  disabled={!isMinimumOrderMet}
+                  disabled={!isMinimumOrderMet || pincode.length !== 6}
                 >
-                  {isMinimumOrderMet ? 'Proceed to Checkout' : `Min. Order ₹${MINIMUM_ORDER_VALUE}`}
+                  {!isMinimumOrderMet 
+                    ? `Min. Order ₹${MINIMUM_ORDER_VALUE}` 
+                    : pincode.length !== 6 
+                      ? 'Enter Pincode'
+                      : 'Proceed to Checkout'}
                 </Button>
               ) : (
                 <div className="space-y-4">
@@ -404,7 +494,7 @@ const Cart = () => {
                         Processing...
                       </>
                     ) : (
-                      `Pay ₹${totalPrice.toLocaleString()}`
+                      `Pay ₹${grandTotal.toLocaleString()}`
                     )}
                   </Button>
                   <Button 
