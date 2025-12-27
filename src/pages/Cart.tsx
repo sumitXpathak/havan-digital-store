@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link, useNavigate } from "react-router-dom";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2, CheckCircle, MapPin } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2, CheckCircle, MapPin, CreditCard, Banknote } from "lucide-react";
 import { useState, useMemo } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -66,6 +67,7 @@ const Cart = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [pincode, setPincode] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
   const [checkoutForm, setCheckoutForm] = useState({
     phone: "",
     address: "",
@@ -114,19 +116,62 @@ const Cart = () => {
     setIsProcessing(true);
 
     try {
-      // Load Razorpay script
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        toast.error("Failed to load payment gateway");
-        setIsProcessing(false);
-        return;
-      }
-
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Please login to continue");
         navigate("/auth");
+        return;
+      }
+
+      // COD Order - create directly in database
+      if (paymentMethod === "cod") {
+        const { error: orderError } = await supabase
+          .from("orders")
+          .insert({
+            user_id: user.id,
+            phone: checkoutForm.phone,
+            shipping_address: `${checkoutForm.address}\nPincode: ${pincode}`,
+            items: items.map((item) => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image,
+            })),
+            total_amount: grandTotal,
+            status: "pending_cod",
+          });
+
+        if (orderError) {
+          console.error("COD order error:", orderError);
+          toast.error("Failed to place order");
+          setIsProcessing(false);
+          return;
+        }
+
+        // Send notification
+        await supabase.functions.invoke("send-order-notification", {
+          body: {
+            phone: checkoutForm.phone,
+            email: user.email,
+            order_total: grandTotal,
+            payment_method: "COD",
+          },
+        });
+
+        setOrderSuccess(true);
+        clearCart();
+        toast.success("Order placed! Pay ₹" + grandTotal.toLocaleString() + " on delivery.");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Online Payment - Razorpay
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error("Failed to load payment gateway");
+        setIsProcessing(false);
         return;
       }
 
@@ -481,6 +526,38 @@ const Cart = () => {
                       rows={3}
                     />
                   </div>
+
+                  {/* Payment Method Selection */}
+                  <div>
+                    <Label className="mb-3 block">Payment Method *</Label>
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={(value) => setPaymentMethod(value as "online" | "cod")}
+                      className="space-y-2"
+                    >
+                      <div className="flex items-center space-x-3 border border-border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="online" id="online" />
+                        <Label htmlFor="online" className="flex items-center gap-2 cursor-pointer flex-1">
+                          <CreditCard className="w-4 h-4 text-primary" />
+                          <div>
+                            <p className="font-medium">Pay Online</p>
+                            <p className="text-xs text-muted-foreground">UPI, Card, Net Banking</p>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-3 border border-border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="cod" id="cod" />
+                        <Label htmlFor="cod" className="flex items-center gap-2 cursor-pointer flex-1">
+                          <Banknote className="w-4 h-4 text-green-600" />
+                          <div>
+                            <p className="font-medium">Cash on Delivery</p>
+                            <p className="text-xs text-muted-foreground">Pay when you receive</p>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
                   <Button 
                     variant="hero" 
                     size="lg" 
@@ -493,6 +570,8 @@ const Cart = () => {
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Processing...
                       </>
+                    ) : paymentMethod === "cod" ? (
+                      `Place COD Order - ₹${grandTotal.toLocaleString()}`
                     ) : (
                       `Pay ₹${grandTotal.toLocaleString()}`
                     )}
