@@ -337,10 +337,6 @@ const Cart = () => {
                   <span>Subtotal ({totalItems} items)</span>
                   <span>₹{totalPrice.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Shipping</span>
-                  <span className="text-green-600">Free</span>
-                </div>
                 <div className="border-t border-border pt-4">
                   <div className="flex justify-between text-lg font-bold text-foreground">
                     <span>Total</span>
