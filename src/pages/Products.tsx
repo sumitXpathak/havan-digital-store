@@ -2,15 +2,16 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { categories } from "@/data/products";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, ShoppingCart, Search, SlidersHorizontal, X } from "lucide-react";
+import { Star, ShoppingCart, SlidersHorizontal, X, Heart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { Link } from "react-router-dom";
 import {
   Sheet,
@@ -46,6 +47,7 @@ const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   // Fetch products from database
   useEffect(() => {
@@ -213,25 +215,12 @@ const Products = () => {
 
           {/* Search and Filters Bar */}
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+            {/* Search Input with Autocomplete */}
+            <SearchAutocomplete 
+              onSearch={(query) => setSearchQuery(query)}
+              placeholder="Search products..."
+              className="flex-1"
+            />
 
             {/* Mobile Filter Button */}
             <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
@@ -298,6 +287,19 @@ const Products = () => {
                           {product.badge && (
                             <Badge className="absolute top-3 left-3">{product.badge}</Badge>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-3 right-3 bg-background/80 hover:bg-background"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              toggleWishlist(product.id);
+                            }}
+                          >
+                            <Heart 
+                              className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-destructive text-destructive' : ''}`} 
+                            />
+                          </Button>
                         </div>
                       </Link>
                       
