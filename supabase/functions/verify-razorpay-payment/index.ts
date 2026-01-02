@@ -19,6 +19,62 @@ function getCorsHeaders(origin: string) {
   };
 }
 
+// Input validation functions
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+function isValidPhone(phone: string): boolean {
+  // Indian phone format: +91XXXXXXXXXX or 10 digits
+  const phoneRegex = /^(\+91)?[6-9]\d{9}$/;
+  return phoneRegex.test(phone);
+}
+
+function validateOrderData(order_data: any): { valid: boolean; error?: string } {
+  if (!order_data) return { valid: true }; // order_data is optional
+
+  // Validate user_id
+  if (!order_data.user_id || !isValidUUID(order_data.user_id)) {
+    return { valid: false, error: "Invalid user_id format" };
+  }
+
+  // Validate phone
+  if (!order_data.phone || !isValidPhone(order_data.phone)) {
+    return { valid: false, error: "Invalid phone number format" };
+  }
+
+  // Validate total_amount
+  if (typeof order_data.total_amount !== 'number' || order_data.total_amount <= 0 || order_data.total_amount > 10000000) {
+    return { valid: false, error: "Invalid total_amount (must be positive number up to 10,000,000)" };
+  }
+
+  // Validate shipping_address
+  if (order_data.shipping_address && (typeof order_data.shipping_address !== 'string' || order_data.shipping_address.length > 500)) {
+    return { valid: false, error: "Shipping address too long (max 500 characters)" };
+  }
+
+  // Validate items array
+  if (!Array.isArray(order_data.items) || order_data.items.length === 0 || order_data.items.length > 50) {
+    return { valid: false, error: "Invalid items array (1-50 items required)" };
+  }
+
+  for (let i = 0; i < order_data.items.length; i++) {
+    const item = order_data.items[i];
+    if (!item.name || typeof item.name !== 'string' || item.name.length > 200) {
+      return { valid: false, error: `Item ${i + 1}: name must be string (max 200 chars)` };
+    }
+    if (typeof item.price !== 'number' || item.price <= 0 || item.price > 10000000) {
+      return { valid: false, error: `Item ${i + 1}: invalid price` };
+    }
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0 || item.quantity > 100) {
+      return { valid: false, error: `Item ${i + 1}: quantity must be integer 1-100` };
+    }
+  }
+
+  return { valid: true };
+}
+
 // HMAC SHA256 verification
 async function verifySignature(
   orderId: string,
@@ -74,6 +130,16 @@ serve(async (req) => {
       );
     }
 
+    // Validate order_data if provided
+    const orderValidation = validateOrderData(order_data);
+    if (!orderValidation.valid) {
+      console.error("Order data validation failed:", orderValidation.error);
+      return new Response(
+        JSON.stringify({ error: orderValidation.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET");
 
     if (!RAZORPAY_KEY_SECRET) {
@@ -108,13 +174,22 @@ serve(async (req) => {
       const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+      // Sanitize items before storing
+      const sanitizedItems = order_data.items.map((item: any) => ({
+        id: item.id,
+        name: String(item.name).substring(0, 200),
+        price: Number(item.price),
+        quantity: Math.min(100, Math.max(1, Math.floor(Number(item.quantity)))),
+        image: item.image,
+      }));
+
       const { data: orderResult, error: orderError } = await supabase
         .from("orders")
         .insert({
           user_id: order_data.user_id,
           phone: order_data.phone,
-          shipping_address: order_data.shipping_address,
-          items: order_data.items,
+          shipping_address: String(order_data.shipping_address || "").substring(0, 500),
+          items: sanitizedItems,
           total_amount: order_data.total_amount,
           status: "confirmed",
         })
@@ -144,12 +219,7 @@ serve(async (req) => {
           "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
         },
         body: JSON.stringify({
-          phone: order_data.phone,
-          email: order_data.email,
           order_id: orderResult.id,
-          items: order_data.items,
-          total_amount: order_data.total_amount,
-          shipping_address: order_data.shipping_address,
         }),
       }).then((res) => {
         console.log("Notification sent, status:", res.status);

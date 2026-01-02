@@ -1,10 +1,23 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://lovable.dev',
+  'https://id-preview--jxbgvwvsbamxfeekofjz.lovable.app',
+  'https://jxbgvwvsbamxfeekofjz.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+function getCorsHeaders(origin: string) {
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Credentials": "true",
+  };
+}
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -13,17 +26,45 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const MAX_VERIFY_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
+// Input validation
+const MAX_FULLNAME_LENGTH = 100;
+
 serve(async (req) => {
+  const origin = req.headers.get('origin') || '';
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { phone, otp, fullName } = await req.json();
+    const body = await req.json();
+    const phone = body.phone;
+    const otp = body.otp;
+    // Sanitize fullName - limit length to prevent abuse
+    const fullName = body.fullName ? String(body.fullName).substring(0, MAX_FULLNAME_LENGTH).trim() : "";
 
     if (!phone || !otp) {
       return new Response(
         JSON.stringify({ error: "Phone number and OTP are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate phone format
+    const phoneRegex = /^\+91[6-9]\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid phone number format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate OTP format (6 digits)
+    const otpRegex = /^\d{6}$/;
+    if (!otpRegex.test(otp)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid OTP format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -190,7 +231,7 @@ serve(async (req) => {
         email_confirm: true,
         phone_confirm: true,
         user_metadata: {
-          full_name: fullName || "",
+          full_name: fullName,
           phone,
         },
       });
