@@ -64,10 +64,10 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="श्री Sanatan Logo" className="h-10 w-10 rounded-full object-cover" />
+            <img src={logo} alt="Sanatan Logo" className="h-10 w-10 rounded-full object-cover" />
             <div className="flex flex-col">
               <span className="font-heading text-lg md:text-xl font-bold text-primary">
-                ꧁•श्री•SANATAN•꧂
+                ꧁•SANATAN•꧂
               </span>
             </div>
           </Link>
