@@ -6,10 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
+// Public review interface - excludes user_id for privacy
 interface Review {
   id: string;
   product_id: string;
-  user_id: string;
   rating: number;
   comment: string | null;
   created_at: string;
@@ -215,11 +215,12 @@ const ReviewsSection = ({ productId }: ReviewsSectionProps) => {
 
   const fetchReviews = async () => {
     setIsLoading(true);
+    // Use public_reviews view to avoid exposing user_id
     const { data, error } = await supabase
-      .from("reviews")
-      .select("*")
+      .from("public_reviews" as any)
+      .select("id, product_id, rating, comment, created_at")
       .eq("product_id", productId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false }) as { data: Review[] | null; error: any };
 
     if (!error && data) {
       setReviews(data);
