@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
@@ -26,12 +27,7 @@ interface OrderItem {
 }
 
 interface OrderNotificationRequest {
-  phone: string;
-  email?: string;
   order_id: string;
-  items: OrderItem[];
-  total_amount: number;
-  shipping_address: string;
 }
 
 const sendSMS = async (phone: string, message: string) => {
@@ -123,7 +119,7 @@ const sendEmail = async (
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #f97316; margin: 0;">꧁•श्री•SANATAN•꧂</h1>
+          <h1 style="color: #f97316; margin: 0;">꧁•SANATAN•꧂</h1>
           <p style="color: #666; margin-top: 8px;">Puja Samagri Store</p>
         </div>
         
@@ -173,7 +169,7 @@ const sendEmail = async (
 
   try {
     const emailResponse = await resend.emails.send({
-      from: "श्री Sanatan <onboarding@resend.dev>",
+      from: "Sanatan <onboarding@resend.dev>",
       to: [email],
       subject: `Order Confirmed! #${orderId.slice(0, 8).toUpperCase()}`,
       html: emailHtml,
@@ -197,26 +193,75 @@ serve(async (req) => {
   }
 
   try {
-    const {
-      phone,
-      email,
-      order_id,
-      items,
-      total_amount,
-      shipping_address,
-    }: OrderNotificationRequest = await req.json();
+    // Authentication check
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("No authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    console.log("Sending order notifications for:", order_id);
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify the user's token
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error("Authentication failed:", authError);
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { order_id }: OrderNotificationRequest = await req.json();
+
+    if (!order_id) {
+      return new Response(
+        JSON.stringify({ error: "Order ID is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify the order exists and belongs to the authenticated user
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", order_id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (orderError || !order) {
+      console.error("Order not found or unauthorized:", orderError);
+      return new Response(
+        JSON.stringify({ error: "Order not found or unauthorized" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Sending order notifications for verified order:", order_id);
+
+    // Use verified order data from database, not from request body
+    const phone = order.phone;
+    const items = order.items as OrderItem[];
+    const totalAmount = order.total_amount;
+    const shippingAddress = order.shipping_address || "";
 
     const results: { sms?: any; email?: any } = {};
 
     // Send SMS notification
-    const smsMessage = `🙏 नमस्ते! Your order #${order_id.slice(0, 8).toUpperCase()} has been confirmed! Total: ₹${total_amount.toLocaleString()}. Thank you for shopping with श्री Sanatan.`;
+    const smsMessage = `🙏 नमस्ते! Your order #${order_id.slice(0, 8).toUpperCase()} has been confirmed! Total: ₹${totalAmount.toLocaleString()}. Thank you for shopping with Sanatan.`;
     results.sms = await sendSMS(phone, smsMessage);
 
-    // Send email notification if email is provided
-    if (email) {
-      results.email = await sendEmail(email, order_id, items, total_amount, shipping_address);
+    // Send email notification if user has email
+    if (user.email) {
+      results.email = await sendEmail(user.email, order_id, items, totalAmount, shippingAddress);
     }
 
     console.log("Notification results:", results);

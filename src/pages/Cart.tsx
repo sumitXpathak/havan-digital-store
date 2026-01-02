@@ -126,7 +126,7 @@ const Cart = () => {
 
       // COD Order - create directly in database
       if (paymentMethod === "cod") {
-        const { error: orderError } = await supabase
+        const { data: orderData, error: orderError } = await supabase
           .from("orders")
           .insert({
             user_id: user.id,
@@ -141,22 +141,21 @@ const Cart = () => {
             })),
             total_amount: grandTotal,
             status: "pending_cod",
-          });
+          })
+          .select("id")
+          .single();
 
-        if (orderError) {
+        if (orderError || !orderData) {
           console.error("COD order error:", orderError);
           toast.error("Failed to place order");
           setIsProcessing(false);
           return;
         }
 
-        // Send notification
+        // Send notification with verified order_id - function will fetch order data from DB
         await supabase.functions.invoke("send-order-notification", {
           body: {
-            phone: checkoutForm.phone,
-            email: user.email,
-            order_total: grandTotal,
-            payment_method: "COD",
+            order_id: orderData.id,
           },
         });
 
