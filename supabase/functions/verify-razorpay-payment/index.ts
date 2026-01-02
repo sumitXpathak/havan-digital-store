@@ -112,6 +112,35 @@ serve(async (req) => {
   }
 
   try {
+    // Initialize Supabase client for auth verification
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    // Verify user authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("Missing authorization header");
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("Authentication failed:", authError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Authenticated user:", user.id);
+
     const { 
       razorpay_order_id, 
       razorpay_payment_id, 
@@ -140,10 +169,20 @@ serve(async (req) => {
       );
     }
 
+    // CRITICAL: Verify the user_id in order_data matches the authenticated user
+    if (order_data && order_data.user_id !== user.id) {
+      console.error("User ID mismatch - authenticated:", user.id, "order:", order_data.user_id);
+      return new Response(
+        JSON.stringify({ error: "User ID mismatch - cannot create order for another user" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const RAZORPAY_KEY_ID = Deno.env.get("RAZORPAY_KEY_ID");
     const RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET");
 
-    if (!RAZORPAY_KEY_SECRET) {
-      console.error("Razorpay secret not configured");
+    if (!RAZORPAY_KEY_SECRET || !RAZORPAY_KEY_ID) {
+      console.error("Razorpay credentials not configured");
       return new Response(
         JSON.stringify({ error: "Payment service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -166,12 +205,41 @@ serve(async (req) => {
       );
     }
 
-    console.log("Payment verified successfully:", razorpay_payment_id);
+    console.log("Payment signature verified:", razorpay_payment_id);
 
-    // If order_data is provided, save the order to database
+    // If order_data is provided, verify amount and save the order
     if (order_data) {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      // Fetch Razorpay order to verify amount matches
+      const razorpayOrderResponse = await fetch(
+        `https://api.razorpay.com/v1/orders/${razorpay_order_id}`,
+        {
+          headers: {
+            "Authorization": `Basic ${btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`)}`,
+          },
+        }
+      );
+
+      if (!razorpayOrderResponse.ok) {
+        console.error("Failed to fetch Razorpay order details");
+        return new Response(
+          JSON.stringify({ error: "Failed to verify payment amount" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const razorpayOrder = await razorpayOrderResponse.json();
+      const expectedAmountPaise = Math.round(order_data.total_amount * 100);
+
+      if (razorpayOrder.amount !== expectedAmountPaise) {
+        console.error("Amount mismatch - Razorpay:", razorpayOrder.amount, "Order:", expectedAmountPaise);
+        return new Response(
+          JSON.stringify({ error: "Payment amount does not match order total" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("Amount verified:", razorpayOrder.amount, "paise");
+
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
       // Sanitize items before storing
@@ -186,7 +254,7 @@ serve(async (req) => {
       const { data: orderResult, error: orderError } = await supabase
         .from("orders")
         .insert({
-          user_id: order_data.user_id,
+          user_id: user.id, // Use authenticated user's ID, not from request
           phone: order_data.phone,
           shipping_address: String(order_data.shipping_address || "").substring(0, 500),
           items: sanitizedItems,
@@ -216,7 +284,7 @@ serve(async (req) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+          "Authorization": `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({
           order_id: orderResult.id,
