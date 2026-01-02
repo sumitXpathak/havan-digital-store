@@ -19,6 +19,10 @@ function getCorsHeaders(origin: string) {
   };
 }
 
+// Validation constants
+const MIN_AMOUNT = 1; // Minimum ₹1
+const MAX_AMOUNT = 10000000; // Maximum ₹1 crore
+
 serve(async (req) => {
   const origin = req.headers.get('origin') || '';
   const corsHeaders = getCorsHeaders(origin);
@@ -59,11 +63,27 @@ serve(async (req) => {
 
     console.log("Creating Razorpay order:", { amount, currency, receipt, userId: user.id });
 
-    // Validate amount
-    if (!amount || amount <= 0) {
-      console.error("Invalid amount provided:", amount);
+    // Validate amount - must be a number within range
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      console.error("Amount is not a valid number:", amount);
       return new Response(
-        JSON.stringify({ error: "Invalid amount" }),
+        JSON.stringify({ error: "Amount must be a valid number" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (amount < MIN_AMOUNT) {
+      console.error("Amount below minimum:", amount);
+      return new Response(
+        JSON.stringify({ error: `Minimum order amount is ₹${MIN_AMOUNT}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (amount > MAX_AMOUNT) {
+      console.error("Amount exceeds maximum:", amount);
+      return new Response(
+        JSON.stringify({ error: `Maximum order amount is ₹${MAX_AMOUNT.toLocaleString()}` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -82,11 +102,20 @@ serve(async (req) => {
     // Create Razorpay order
     const auth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`);
     
+    // Sanitize receipt to prevent injection
+    const sanitizedReceipt = receipt 
+      ? String(receipt).substring(0, 40).replace(/[^a-zA-Z0-9_-]/g, '')
+      : `receipt_${Date.now()}`;
+    
     const orderData = {
       amount: Math.round(amount * 100), // Convert to paise
-      currency,
-      receipt: receipt || `receipt_${Date.now()}`,
-      notes: { ...notes, user_id: user.id },
+      currency: currency === "INR" ? "INR" : "INR", // Only allow INR
+      receipt: sanitizedReceipt,
+      notes: { 
+        user_id: user.id,
+        // Sanitize notes if provided
+        ...(notes?.phone ? { phone: String(notes.phone).substring(0, 15) } : {}),
+      },
     };
 
     console.log("Sending to Razorpay:", orderData);
