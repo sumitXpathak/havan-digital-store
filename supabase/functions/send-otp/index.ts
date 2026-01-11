@@ -6,6 +6,8 @@ const ALLOWED_ORIGINS = [
   'https://lovable.dev',
   'https://id-preview--jxbgvwvsbamxfeekofjz.lovable.app',
   'https://jxbgvwvsbamxfeekofjz.lovable.app',
+  'https://havan-store.site',
+  'https://www.havan-store.site',
   'http://localhost:5173',
   'http://localhost:3000',
 ];
