@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2, CheckCircle, MapPin, CreditCard, Banknote } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -76,6 +76,39 @@ const Cart = () => {
   const shippingInfo = useMemo(() => getShippingZone(pincode), [pincode]);
   const shippingCharge = shippingInfo.zone !== "unknown" ? shippingInfo.charge : 0;
   const grandTotal = totalPrice + shippingCharge;
+  
+  const [locationName, setLocationName] = useState<string | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  // Fetch location from pincode using India Post API
+  useEffect(() => {
+    const fetchLocation = async () => {
+      if (pincode.length !== 6) {
+        setLocationName(null);
+        return;
+      }
+      
+      setIsLoadingLocation(true);
+      try {
+        const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+        const data = await response.json();
+        
+        if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
+          const postOffice = data[0].PostOffice[0];
+          setLocationName(`${postOffice.Name}, ${postOffice.District}, ${postOffice.State}`);
+        } else {
+          setLocationName(null);
+        }
+      } catch (error) {
+        console.error("Error fetching pincode location:", error);
+        setLocationName(null);
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    };
+
+    fetchLocation();
+  }, [pincode]);
 
   const isMinimumOrderMet = totalPrice >= MINIMUM_ORDER_VALUE;
   const amountNeeded = MINIMUM_ORDER_VALUE - totalPrice;
@@ -450,9 +483,16 @@ const Cart = () => {
                       className="flex-1"
                     />
                   </div>
-                  {pincode.length === 6 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Zone: {shippingInfo.zoneName}
+                {pincode.length === 6 && (
+                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {isLoadingLocation ? (
+                        <span className="animate-pulse">Loading...</span>
+                      ) : locationName ? (
+                        <span>{locationName}</span>
+                      ) : (
+                        <span>Zone: {shippingInfo.zoneName}</span>
+                      )}
                     </p>
                   )}
                 </div>
