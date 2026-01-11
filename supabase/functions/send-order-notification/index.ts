@@ -30,6 +30,17 @@ interface OrderNotificationRequest {
   order_id: string;
 }
 
+// HTML escape function to prevent XSS attacks in email templates
+function escapeHtml(unsafe: string): string {
+  if (!unsafe) return "";
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 const sendSMS = async (phone: string, message: string) => {
   const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
   const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -100,7 +111,7 @@ const sendEmail = async (
     .map(
       (item) => `
       <tr>
-        <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.name}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee;">${escapeHtml(item.name)}</td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">₹${item.price.toLocaleString()}</td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">₹${(item.price * item.quantity).toLocaleString()}</td>
@@ -155,7 +166,7 @@ const sendEmail = async (
         
         <div style="background-color: #fef3c7; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
           <h3 style="margin: 0 0 8px 0; color: #92400e; font-size: 14px;">Shipping Address</h3>
-          <p style="margin: 0; color: #333;">${shippingAddress}</p>
+          <p style="margin: 0; color: #333;">${escapeHtml(shippingAddress)}</p>
         </div>
         
         <div style="text-align: center; color: #666; font-size: 14px; border-top: 1px solid #eee; padding-top: 20px;">
