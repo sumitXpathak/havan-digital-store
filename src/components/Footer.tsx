@@ -150,10 +150,25 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-primary-foreground mt-0.5" />
-                <p className="text-secondary-foreground/80">
-                  Vishnupad, Gaya jii,<br />
-                  Bihar-823001
-                </p>
+                <div>
+                  <a 
+                    href="https://www.google.com/maps/search/Vishnupad+Temple+Gaya+Bihar+823001"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-secondary-foreground/80 hover:text-primary-foreground transition-colors"
+                  >
+                    Vishnupad, Gaya jii,<br />
+                    Bihar-823001
+                  </a>
+                  <a 
+                    href="https://www.google.com/maps/search/Vishnupad+Temple+Gaya+Bihar+823001"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-foreground text-sm hover:underline mt-1 inline-block"
+                  >
+                    View on Map →
+                  </a>
+                </div>
               </li>
             </ul>
           </div>
