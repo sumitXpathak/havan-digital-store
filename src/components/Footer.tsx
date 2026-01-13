@@ -171,6 +171,21 @@ const Footer = () => {
                 </div>
               </li>
             </ul>
+            
+            {/* Google Maps Embed */}
+            <div className="mt-4 rounded-lg overflow-hidden border border-secondary-foreground/20">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3620.7621877507147!2d84.98642797467097!3d24.79694994770785!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f32c4f3c5c5c5d%3A0x5c5c5c5c5c5c5c5c!2sVishnupad%20Temple%2C%20Gaya%2C%20Bihar%20823001!5e0!3m2!1sen!2sin!4v1704067200000!5m2!1sen!2sin"
+                width="100%"
+                height="150"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Vishnupad Temple Location"
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
 
