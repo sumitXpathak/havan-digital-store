@@ -140,19 +140,19 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <Phone className="h-5 w-5 text-primary-foreground mt-0.5" />
                 <div>
-                  <p className="text-secondary-foreground">+91 98765 43210</p>
+                  <p className="text-secondary-foreground">+91 6287041170</p>
                   <p className="text-secondary-foreground/70 text-sm">Mon-Sat, 9AM-8PM</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <Mail className="h-5 w-5 text-primary-foreground mt-0.5" />
-                <p className="text-secondary-foreground">contact@shreesanatanpujapath.com</p>
+                <p className="text-secondary-foreground">srisanatan6201@gmail.com</p>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-primary-foreground mt-0.5" />
                 <p className="text-secondary-foreground/80">
-                  Johari Bazaar, Jaipur<br />
-                  Rajasthan 302003
+                  Vishnupad, Gaya jii,<br />
+                  Bihar-823001
                 </p>
               </li>
             </ul>
