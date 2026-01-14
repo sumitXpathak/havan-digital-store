@@ -95,7 +95,8 @@ const Cart = () => {
         
         if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
           const postOffice = data[0].PostOffice[0];
-          setLocationName(`${postOffice.Name}, ${postOffice.District}, ${postOffice.State}`);
+          // Show only district and state (e.g., "Gaya, Bihar")
+          setLocationName(`${postOffice.District}, ${postOffice.State}`);
         } else {
           setLocationName(null);
         }
