@@ -1,30 +1,27 @@
 import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useUserRole = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user, isLoaded } = useUser();
 
   useEffect(() => {
     const checkRole = async () => {
       setIsLoading(true);
       
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.user) {
+      if (!isLoaded || !user) {
         setIsAdmin(false);
-        setUserId(null);
         setIsLoading(false);
         return;
       }
 
-      setUserId(session.user.id);
-
+      // Check admin role in Supabase using Clerk user ID
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .eq('role', 'admin')
         .maybeSingle();
 
@@ -39,13 +36,7 @@ export const useUserRole = () => {
     };
 
     checkRole();
+  }, [user, isLoaded]);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      checkRole();
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  return { isAdmin, isLoading, userId };
+  return { isAdmin, isLoading, userId: user?.id ?? null };
 };

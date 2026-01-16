@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useUser } from "@clerk/clerk-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,37 +22,25 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user, isLoaded } = useUser();
   const { toast } = useToast();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUserId(session?.user?.id ?? null);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserId(session?.user?.id ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (userId) {
+    if (isLoaded && user) {
       fetchWishlist();
     } else {
       setItems([]);
     }
-  }, [userId]);
+  }, [user, isLoaded]);
 
   const fetchWishlist = async () => {
-    if (!userId) return;
+    if (!user) return;
     
     setIsLoading(true);
     const { data, error } = await supabase
       .from('wishlist')
       .select('id, product_id')
-      .eq('user_id', userId);
+      .eq('user_id', user.id);
 
     if (!error && data) {
       setItems(data);
@@ -64,7 +53,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addToWishlist = async (productId: string) => {
-    if (!userId) {
+    if (!user) {
       toast({
         title: "Login Required",
         description: "Please login to add items to wishlist",
@@ -75,7 +64,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
 
     const { error } = await supabase
       .from('wishlist')
-      .insert({ user_id: userId, product_id: productId });
+      .insert({ user_id: user.id, product_id: productId });
 
     if (error) {
       toast({
@@ -93,12 +82,12 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeFromWishlist = async (productId: string) => {
-    if (!userId) return;
+    if (!user) return;
 
     const { error } = await supabase
       .from('wishlist')
       .delete()
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .eq('product_id', productId);
 
     if (error) {
