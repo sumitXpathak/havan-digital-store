@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ import OrderTracker from "@/components/OrderTracker";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import EmptyState from "@/components/EmptyState";
 import { Package, ArrowLeft, ShoppingBag, Eye } from "lucide-react";
+import { useState } from "react";
 
 interface OrderItem {
   id: string;
@@ -36,28 +38,16 @@ interface Order {
 
 const Orders = () => {
   const navigate = useNavigate();
+  const { user, isLoaded } = useUser();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      if (!session?.user) {
-        navigate("/auth");
-      }
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (!session?.user) {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (isLoaded && !user) {
+      navigate("/auth");
+    }
+  }, [user, isLoaded, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -66,10 +56,13 @@ const Orders = () => {
   }, [user]);
 
   const fetchOrders = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from("orders")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -121,7 +114,7 @@ const Orders = () => {
     });
   };
 
-  if (loading) {
+  if (!isLoaded || loading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />

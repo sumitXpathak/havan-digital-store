@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun, LogOut, Shield, Package } from "lucide-react";
+import { Menu, X, ShoppingCart, Search, User, Heart, Moon, Sun, Shield, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useUser, useClerk, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -11,7 +10,6 @@ import logo from "@/assets/logo.jpg";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark');
@@ -22,6 +20,8 @@ const Navbar = () => {
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
   const { isAdmin } = useUserRole();
+  const { user } = useUser();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     if (isDark) {
@@ -31,24 +31,7 @@ const Navbar = () => {
     }
   }, [isDark]);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const toggleDarkMode = () => setIsDark(!isDark);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -129,7 +112,7 @@ const Navbar = () => {
               </Button>
             </Link>
             
-            {user ? (
+            <SignedIn>
               <div className="hidden md:flex items-center gap-2">
                 <Link to="/orders">
                   <Button variant="ghost" size="icon" title="My Orders">
@@ -144,13 +127,20 @@ const Navbar = () => {
                   </Link>
                 )}
                 <span className="text-sm font-medium text-foreground truncate max-w-[120px]">
-                  {user.user_metadata?.full_name || user.phone || 'User'}
+                  {user?.firstName || user?.primaryEmailAddress?.emailAddress || 'User'}
                 </span>
-                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-                  <LogOut className="h-4 w-4" />
-                </Button>
+                <UserButton 
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-8 w-8",
+                    }
+                  }}
+                />
               </div>
-            ) : (
+            </SignedIn>
+            
+            <SignedOut>
               <Button 
                 variant="default" 
                 size="sm" 
@@ -160,7 +150,7 @@ const Navbar = () => {
                 <User className="h-4 w-4 mr-2" />
                 Login
               </Button>
-            )}
+            </SignedOut>
 
             {/* Mobile Menu Button */}
             <Button
@@ -213,29 +203,33 @@ const Navbar = () => {
                     )}
                   </Button>
                 </Link>
-                {user ? (
-                  <>
-                    <span className="text-sm text-muted-foreground truncate max-w-[100px] flex items-center">
-                      <User className="h-4 w-4 mr-1" />
-                      {user.user_metadata?.full_name || user.phone || 'User'}
-                    </span>
-                    <Link to="/orders" onClick={() => setIsMenuOpen(false)}>
-                      <Button variant="ghost" size="icon" title="My Orders">
-                        <Package className="h-5 w-5" />
+                <SignedIn>
+                  <span className="text-sm text-muted-foreground truncate max-w-[100px] flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    {user?.firstName || user?.primaryEmailAddress?.emailAddress || 'User'}
+                  </span>
+                  <Link to="/orders" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="ghost" size="icon" title="My Orders">
+                      <Package className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                  {isAdmin && (
+                    <Link to="/admin" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" size="icon">
+                        <Shield className="h-5 w-5 text-primary" />
                       </Button>
                     </Link>
-                    {isAdmin && (
-                      <Link to="/admin" onClick={() => setIsMenuOpen(false)}>
-                        <Button variant="ghost" size="icon">
-                          <Shield className="h-5 w-5 text-primary" />
-                        </Button>
-                      </Link>
-                    )}
-                    <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-                      <LogOut className="h-4 w-4" />
-                    </Button>
-                  </>
-                ) : (
+                  )}
+                  <UserButton 
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: {
+                        avatarBox: "h-8 w-8",
+                      }
+                    }}
+                  />
+                </SignedIn>
+                <SignedOut>
                   <Button 
                     variant="default" 
                     className="flex-1"
@@ -247,7 +241,7 @@ const Navbar = () => {
                     <User className="h-4 w-4 mr-2" />
                     Login / Register
                   </Button>
-                )}
+                </SignedOut>
               </div>
             </div>
           </div>

@@ -12,6 +12,7 @@ import { useState, useMemo, useEffect } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useUser } from "@clerk/clerk-react";
 
 declare global {
   interface Window {
@@ -62,6 +63,7 @@ const getShippingZone = (pincode: string): { zone: string; charge: number; zoneN
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, totalItems, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
+  const { user, isLoaded } = useUser();
   
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -150,9 +152,8 @@ const Cart = () => {
     setIsProcessing(true);
 
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // Check Clerk user
+      if (!isLoaded || !user) {
         toast.error("Please login to continue");
         navigate("/auth");
         return;
@@ -256,7 +257,7 @@ const Cart = () => {
                   order_data: {
                     user_id: user.id,
                     phone: checkoutForm.phone,
-                    email: user.email,
+                    email: user.primaryEmailAddress?.emailAddress,
                     shipping_address: `${checkoutForm.address}\nPincode: ${pincode}`,
                     items: items.map((item) => ({
                       id: item.id,
