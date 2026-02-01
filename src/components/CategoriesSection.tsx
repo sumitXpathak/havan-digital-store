@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const CategoriesSection = () => {
   return (
-    <section id="categories" className="py-20 bg-gradient-sacred">
+    <section id="categories" className="py-20 bg-muted/50 dark:bg-muted/20">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -26,8 +26,7 @@ const CategoriesSection = () => {
           {categories.map((category, index) => (
             <Card
               key={category.id}
-              variant="category"
-              className="p-4 md:p-6 animate-fade-in"
+              className="p-4 md:p-6 animate-fade-in bg-card dark:bg-card border-border group cursor-pointer hover:shadow-lg transition-shadow"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <Link to={`/products?category=${category.id}`} className="block">
@@ -42,7 +41,7 @@ const CategoriesSection = () => {
                 </h3>
 
                 {/* Hindi Name */}
-                <p className="text-xs text-primary/70 mb-2">{category.nameHindi}</p>
+                <p className="text-xs text-primary/70 dark:text-primary/80 mb-2">{category.nameHindi}</p>
 
                 {/* Description */}
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
@@ -54,13 +53,13 @@ const CategoriesSection = () => {
                   {category.items.slice(0, 3).map((item) => (
                     <span
                       key={item}
-                      className="text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground"
+                      className="text-xs bg-muted dark:bg-muted/50 px-2 py-1 rounded-full text-muted-foreground"
                     >
                       {item}
                     </span>
                   ))}
                   {category.items.length > 3 && (
-                    <span className="text-xs bg-primary/10 px-2 py-1 rounded-full text-primary">
+                    <span className="text-xs bg-primary/10 dark:bg-primary/20 px-2 py-1 rounded-full text-primary">
                       +{category.items.length - 3} more
                     </span>
                   )}
