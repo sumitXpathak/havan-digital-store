@@ -38,7 +38,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer id="contact" className="bg-secondary pt-16 pb-8">
+    <footer id="contact" className="bg-muted dark:bg-card pt-16 pb-8">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* Brand Column */}
@@ -46,29 +46,29 @@ const Footer = () => {
             <a href="/" className="flex items-center gap-2 mb-4">
               <span className="text-3xl">🙏</span>
               <div className="flex flex-col">
-                <span className="font-heading text-2xl font-bold text-secondary-foreground">
+                <span className="font-heading text-2xl font-bold text-foreground">
                   Shree Sanatan Puja Path
                 </span>
-                <span className="text-xs text-secondary-foreground/70">
+                <span className="text-xs text-muted-foreground">
                   श्री सनातन पूजा पाठ
                 </span>
               </div>
             </a>
-            <p className="text-secondary-foreground/80 mb-6 max-w-sm">
+            <p className="text-muted-foreground mb-6 max-w-sm">
               Your trusted destination for authentic puja items, sacred textiles, 
               and divine fragrances. Serving devotees since 1985.
             </p>
 
             {/* Newsletter */}
             <div className="mb-6">
-              <h4 className="font-heading font-semibold text-secondary-foreground mb-3">
+              <h4 className="font-heading font-semibold text-foreground mb-3">
                 Subscribe to Newsletter
               </h4>
               <div className="flex gap-2">
                 <Input
                   type="email"
                   placeholder="Enter your email"
-                  className="bg-secondary-foreground/10 border-secondary-foreground/20 text-secondary-foreground placeholder:text-secondary-foreground/50"
+                  className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                 />
                 <Button variant="saffron" size="icon">
                   <Send className="h-4 w-4" />
@@ -78,16 +78,16 @@ const Footer = () => {
 
             {/* Social Links */}
             <div className="flex gap-3">
-              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-secondary-foreground">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-foreground">
                 <Facebook className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-secondary-foreground">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-foreground">
                 <Instagram className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-secondary-foreground">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-foreground">
                 <Twitter className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-secondary-foreground">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-foreground">
                 <Youtube className="h-5 w-5" />
               </Button>
             </div>
@@ -95,7 +95,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-heading font-semibold text-secondary-foreground mb-4">
+            <h4 className="font-heading font-semibold text-foreground mb-4">
               Quick Links
             </h4>
             <ul className="space-y-2">
@@ -103,7 +103,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-secondary-foreground/80 hover:text-primary-foreground transition-colors"
+                    className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.name}
                   </a>
@@ -114,7 +114,7 @@ const Footer = () => {
 
           {/* Categories */}
           <div>
-            <h4 className="font-heading font-semibold text-secondary-foreground mb-4">
+            <h4 className="font-heading font-semibold text-foreground mb-4">
               Categories
             </h4>
             <ul className="space-y-2">
@@ -122,7 +122,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-secondary-foreground/80 hover:text-primary-foreground transition-colors"
+                    className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.name}
                   </a>
@@ -133,39 +133,39 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h4 className="font-heading font-semibold text-secondary-foreground mb-4">
+            <h4 className="font-heading font-semibold text-foreground mb-4">
               Contact Us
             </h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <Phone className="h-5 w-5 text-primary-foreground mt-0.5" />
+                <Phone className="h-5 w-5 text-primary mt-0.5" />
                 <div>
                   <a 
                     href="tel:+916287041170" 
-                    className="text-secondary-foreground hover:text-primary-foreground transition-colors"
+                    className="text-foreground hover:text-primary transition-colors"
                   >
                     +91 6287041170
                   </a>
-                  <p className="text-secondary-foreground/70 text-sm">Mon-Sat, 9AM-8PM</p>
+                  <p className="text-muted-foreground text-sm">Mon-Sat, 9AM-8PM</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <Mail className="h-5 w-5 text-primary-foreground mt-0.5" />
+                <Mail className="h-5 w-5 text-primary mt-0.5" />
                 <a 
                   href="mailto:srisanatan6201@gmail.com"
-                  className="text-secondary-foreground hover:text-primary-foreground transition-colors"
+                  className="text-foreground hover:text-primary transition-colors"
                 >
                   srisanatan6201@gmail.com
                 </a>
               </li>
               <li className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-primary-foreground mt-0.5" />
+                <MapPin className="h-5 w-5 text-primary mt-0.5" />
                 <div>
                   <a 
                     href="https://www.google.com/maps/search/Vishnupad+Temple+Gaya+Bihar+823001"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-secondary-foreground/80 hover:text-primary-foreground transition-colors"
+                    className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     Vishnupad, Gaya jii,<br />
                     Bihar-823001
@@ -174,7 +174,7 @@ const Footer = () => {
                     href="https://www.google.com/maps/search/Vishnupad+Temple+Gaya+Bihar+823001"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary-foreground text-sm hover:underline mt-1 inline-block"
+                    className="text-primary text-sm hover:underline mt-1 inline-block"
                   >
                     View on Map →
                   </a>
@@ -183,7 +183,7 @@ const Footer = () => {
             </ul>
             
             {/* Google Maps Embed */}
-            <div className="mt-4 rounded-lg overflow-hidden border border-secondary-foreground/20">
+            <div className="mt-4 rounded-lg overflow-hidden border border-border">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3620.7621877507147!2d84.98642797467097!3d24.79694994770785!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f32c4f3c5c5c5d%3A0x5c5c5c5c5c5c5c5c!2sVishnupad%20Temple%2C%20Gaya%2C%20Bihar%20823001!5e0!3m2!1sen!2sin!4v1704067200000!5m2!1sen!2sin"
                 width="100%"
@@ -200,9 +200,9 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-secondary-foreground/10 pt-8">
+        <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-secondary-foreground/70">
+            <p className="text-sm text-muted-foreground">
               © {currentYear} Shree Sanatan Puja Path. All rights reserved.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -210,7 +210,7 @@ const Footer = () => {
                 <a
                   key={policy.name}
                   href={policy.href}
-                  className="text-sm text-secondary-foreground/70 hover:text-primary-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   {policy.name}
                 </a>
