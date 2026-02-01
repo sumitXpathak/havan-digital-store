@@ -4,7 +4,7 @@ import { Star, Quote } from "lucide-react";
 
 const TestimonialsSection = () => {
   return (
-    <section id="testimonials" className="py-20 bg-gradient-sacred pattern-mandala">
+    <section id="testimonials" className="py-20 bg-muted/50 dark:bg-background">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -24,17 +24,16 @@ const TestimonialsSection = () => {
           {testimonials.map((testimonial, index) => (
             <Card
               key={testimonial.id}
-              variant="sacred"
-              className="p-6 animate-fade-in"
+              className="p-6 animate-fade-in bg-card dark:bg-card border-border"
               style={{ animationDelay: `${index * 150}ms` }}
             >
               {/* Quote Icon */}
-              <Quote className="h-8 w-8 text-primary/20 mb-4" />
+              <Quote className="h-8 w-8 text-primary/30 dark:text-primary/40 mb-4" />
 
               {/* Rating */}
               <div className="flex gap-1 mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-accent text-accent" />
+                  <Star key={i} className="h-4 w-4 fill-primary text-primary" />
                 ))}
               </div>
 
@@ -45,7 +44,7 @@ const TestimonialsSection = () => {
 
               {/* Author */}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-primary/20 dark:bg-primary/30 flex items-center justify-center">
                   <span className="text-lg font-heading font-bold text-primary">
                     {testimonial.name.charAt(0)}
                   </span>
