@@ -30,22 +30,22 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="py-16 bg-secondary">
+    <section className="py-16 bg-card dark:bg-card">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
           {features.map((feature, index) => (
             <div
               key={feature.title}
               className="text-center animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
-                <feature.icon className="h-6 w-6 text-primary-foreground" />
+              <div className="inline-flex items-center justify-center w-14 h-14 bg-primary/10 dark:bg-primary/20 rounded-full mb-4 border border-primary/20 dark:border-primary/30">
+                <feature.icon className="h-6 w-6 text-primary dark:text-primary" />
               </div>
-              <h3 className="font-heading text-sm font-semibold text-secondary-foreground mb-1">
+              <h3 className="font-heading text-sm font-semibold text-foreground mb-1">
                 {feature.title}
               </h3>
-              <p className="text-xs text-secondary-foreground/70">{feature.description}</p>
+              <p className="text-xs text-muted-foreground">{feature.description}</p>
             </div>
           ))}
         </div>
