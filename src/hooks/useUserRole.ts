@@ -11,25 +11,37 @@ export const useUserRole = () => {
     const checkRole = async () => {
       setIsLoading(true);
       
-      if (!isLoaded || !user) {
+      if (!isLoaded) {
+        console.log('[useUserRole] Clerk not loaded yet');
+        return;
+      }
+      
+      if (!user) {
+        console.log('[useUserRole] No user logged in');
         setIsAdmin(false);
         setIsLoading(false);
         return;
       }
 
+      console.log('[useUserRole] Checking role for Clerk user:', user.id);
+
       // Check admin role in Supabase using Clerk user ID (TEXT type)
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id as string)
+        .eq('user_id', user.id)
         .eq('role', 'admin')
         .maybeSingle();
 
+      console.log('[useUserRole] Query result:', { data, error });
+
       if (error) {
-        console.error('Error checking role:', error);
+        console.error('[useUserRole] Error checking role:', error);
         setIsAdmin(false);
       } else {
-        setIsAdmin(!!data);
+        const hasAdminRole = !!data;
+        console.log('[useUserRole] Is admin:', hasAdminRole);
+        setIsAdmin(hasAdminRole);
       }
       
       setIsLoading(false);
