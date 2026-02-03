@@ -17,11 +17,11 @@ export const useUserRole = () => {
         return;
       }
 
-      // Check admin role in Supabase using Clerk user ID
+      // Check admin role in Supabase using Clerk user ID (TEXT type)
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id as string)
         .eq('role', 'admin')
         .maybeSingle();
 
